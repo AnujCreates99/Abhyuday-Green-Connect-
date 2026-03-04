@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HaritSetu — Free Sapling Platform</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --forest: #1a3a2a;
+    --leaf: #2d6a4f;
+    --lime: #52b788;
+    --sage: #95d5b2;
+    --cream: #f8f4e9;
+    --amber: #d4a017;
+    --soil: #6b4226;
+    --mist: #e8f5ee;
+    --text: #1a2e1f;
+    --subtext: #4a6358;
+  }
+
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); }
+
+  .app { min-height: 100vh; }
+
+  /* NAV */
+  .nav {
+    background: var(--forest);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+  .nav-brand {
+    font-family: 'Playfair Display', serif;
+    color: var(--sage);
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+  .nav-brand span { color: var(--lime); }
+  .nav-tabs {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .nav-tab {
+    padding: 0.4rem 1rem;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .nav-tab:hover { color: white; background: rgba(255,255,255,0.1); }
+  .nav-tab.active { color: var(--sage); background: rgba(149,213,178,0.15); font-weight: 600; }
+  .nav-badge {
+    background: var(--amber);
+    color: var(--forest);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 0.3rem;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, var(--forest) 0%, #0d2418 50%, #162d20 100%);
+    padding: 5rem 2rem 4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(82,183,136,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 30%, rgba(212,160,23,0.08) 0%, transparent 50%);
+  }
+  .hero-tag {
+    display: inline-block;
+    background: rgba(82,183,136,0.2);
+    border: 1px solid var(--lime);
+    color: var(--lime);
+    padding: 0.3rem 1rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    color: white;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  .hero h1 em { color: var(--sage); font-style: normal; }
+  .hero p {
+    color: rgba(255,255,255,0.65);
+    font-size: 1rem;
+    max-width: 560px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.7;
+    position: relative;
+  }
+  .hero-btns {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+  }
+  .btn-primary {
+    background: var(--lime);
+    color: var(--forest);
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .btn-primary:hover { background: var(--sage); transform: translateY(-1px); box-shadow: 0 4px 15px rgba(82,183,136,0.4); }
+  .btn-outline {
+    background: transparent;
+    color: var(--sage);
+    border: 1.5px solid var(--sage);
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-outline:hover { background: rgba(149,213,178,0.1); }
+
+  /* STATS STRIP */
+  .stats-strip {
+    background: var(--leaf);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .stat-item {
+    padding: 1.5rem;
+    text-align: center;
+    border-right: 1px solid rgba(255,255,255,0.1);
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--sage); font-weight: 700; }
+  .stat-label { font-size: 0.75rem; color: rgba(255,255,255,0.65); margin-top: 0.2rem; letter-spacing: 0.5px; }
+
+  /* SECTIONS */
+  .section { padding: 4rem 2rem; max-width: 1100px; margin: 0 auto; }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--forest);
+    margin-bottom: 0.5rem;
+  }
+  .section-sub { color: var(--subtext); font-size: 0.95rem; margin-bottom: 2.5rem; line-height: 1.6; }
+
+  /* HOW IT WORKS */
+  .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+  .how-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.8rem 1.5rem;
+    border: 1px solid rgba(45,106,79,0.12);
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .how-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(45,106,79,0.12); }
+  .how-step {
+    width: 40px;
+    height: 40px;
+    background: var(--mist);
+    border: 2px solid var(--lime);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: var(--leaf);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+  .how-card h3 { font-size: 0.95rem; font-weight: 700; color: var(--forest); margin-bottom: 0.4rem; }
+  .how-card p { font-size: 0.82rem; color: var(--subtext); line-height: 1.6; }
+  .how-emoji { font-size: 1.5rem; margin-bottom: 0.8rem; display: block; }
+
+  /* FORM */
+  .form-container {
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem;
+    border: 1px solid rgba(45,106,79,0.12);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.06);
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  .form-section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--forest);
+    margin-bottom: 0.3rem;
+  }
+  .form-section-sub { font-size: 0.85rem; color: var(--subtext); margin-bottom: 2rem; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-field { margin-bottom: 1.2rem; }
+  .form-field.full { grid-column: 1 / -1; }
+  .form-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--forest); margin-bottom: 0.4rem; letter-spacing: 0.3px; }
+  .form-label span { color: #e74c3c; }
+  .form-input {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid rgba(45,106,79,0.2);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: var(--cream);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .form-input:focus { border-color: var(--lime); box-shadow: 0 0 0 3px rgba(82,183,136,0.15); background: white; }
+  .form-select { appearance: none; cursor: pointer; }
+  .upload-box {
+    border: 2px dashed rgba(45,106,79,0.3);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--mist);
+  }
+  .upload-box:hover { border-color: var(--lime); background: rgba(82,183,136,0.08); }
+  .upload-box.uploaded { border-color: var(--lime); background: rgba(82,183,136,0.1); border-style: solid; }
+  .upload-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+  .upload-text { font-size: 0.82rem; color: var(--subtext); }
+  .upload-text strong { color: var(--leaf); }
+  .form-hint { font-size: 0.75rem; color: var(--subtext); margin-top: 0.3rem; font-style: italic; }
+  .submit-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--leaf);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+    letter-spacing: 0.3px;
+  }
+  .submit-btn:hover { background: var(--forest); transform: translateY(-1px); box-shadow: 0 4px 15px rgba(45,106,79,0.3); }
+
+  /* SUCCESS CARD */
+  .success-card {
+    background: white;
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    border: 1px solid rgba(82,183,136,0.3);
+    max-width: 500px;
+    margin: 0 auto;
+    box-shadow: 0 8px 40px rgba(45,106,79,0.12);
+  }
+  .success-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+  .success-uid {
+    background: var(--forest);
+    color: var(--sage);
+    padding: 1.2rem 2rem;
+    border-radius: 12px;
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    letter-spacing: 4px;
+    margin: 1.5rem 0;
+    display: inline-block;
+  }
+  .success-card h2 { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--forest); margin-bottom: 0.5rem; }
+  .success-card p { color: var(--subtext); font-size: 0.9rem; line-height: 1.6; margin-bottom: 0.5rem; }
+  .success-steps { text-align: left; background: var(--mist); border-radius: 10px; padding: 1.2rem 1.5rem; margin: 1.2rem 0; }
+  .success-steps h4 { font-size: 0.8rem; font-weight: 700; color: var(--leaf); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem; }
+  .success-step-item { display: flex; gap: 0.7rem; margin-bottom: 0.6rem; font-size: 0.85rem; color: var(--subtext); align-items: flex-start; }
+  .step-dot { width: 18px; height: 18px; background: var(--lime); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.6rem; font-weight: 800; flex-shrink: 0; margin-top: 1px; }
+  .reward-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: linear-gradient(135deg, var(--amber), #e8b84b);
+    color: var(--forest);
+    padding: 0.5rem 1.2rem;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-top: 1rem;
+  }
+
+  /* TRACKER */
+  .tracker-form {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    border: 1px solid rgba(45,106,79,0.12);
+    max-width: 500px;
+    margin: 0 auto 2rem;
+    display: flex;
+    gap: 0.8rem;
+  }
+  .tracker-form input { flex: 1; }
+  .tracker-form .btn-primary { padding: 0.7rem 1.5rem; white-space: nowrap; font-size: 0.9rem; }
+  .status-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid rgba(45,106,79,0.12);
+    max-width: 600px;
+    margin: 0 auto;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+  .status-header {
+    background: var(--forest);
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .status-header h3 { color: white; font-family: 'Playfair Display', serif; font-size: 1.2rem; }
+  .status-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .status-pending { background: rgba(212,160,23,0.2); color: var(--amber); }
+  .status-approved { background: rgba(82,183,136,0.2); color: var(--lime); }
+  .status-collected { background: rgba(149,213,178,0.2); color: var(--leaf); }
+  .status-complete { background: rgba(82,183,136,0.3); color: var(--leaf); }
+  .status-body { padding: 1.5rem 2rem; }
+  .status-row { display: flex; justify-content: space-between; margin-bottom: 0.8rem; font-size: 0.88rem; }
+  .status-key { color: var(--subtext); }
+  .status-val { color: var(--text); font-weight: 600; }
+  .progress-bar { height: 6px; background: var(--mist); border-radius: 3px; margin: 1.5rem 0; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--leaf), var(--lime)); border-radius: 3px; transition: width 0.5s ease; }
+  .progress-steps { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--subtext); }
+  .progress-step.done { color: var(--leaf); font-weight: 600; }
+
+  /* DASHBOARD */
+  .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
+  .dash-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid rgba(45,106,79,0.12);
+    transition: transform 0.2s;
+  }
+  .dash-card:hover { transform: translateY(-2px); }
+  .dash-card-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+  .dash-card-num { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--forest); font-weight: 700; }
+  .dash-card-label { font-size: 0.8rem; color: var(--subtext); }
+  .dash-card.accent { background: var(--forest); border-color: var(--forest); }
+  .dash-card.accent .dash-card-num { color: var(--sage); }
+  .dash-card.accent .dash-card-label { color: rgba(255,255,255,0.6); }
+  .table-wrap {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid rgba(45,106,79,0.12);
+    overflow: hidden;
+  }
+  .table-head {
+    background: var(--mist);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(45,106,79,0.1);
+  }
+  .table-head h3 { font-size: 0.95rem; font-weight: 700; color: var(--forest); }
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: 0.8rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(45,106,79,0.08); background: rgba(248,244,233,0.5); }
+  td { padding: 0.9rem 1rem; font-size: 0.85rem; border-bottom: 1px solid rgba(45,106,79,0.06); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--mist); }
+  .action-btn {
+    padding: 0.3rem 0.8rem;
+    border: 1.5px solid var(--lime);
+    background: transparent;
+    color: var(--leaf);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    margin-right: 0.3rem;
+  }
+  .action-btn:hover { background: var(--leaf); color: white; border-color: var(--leaf); }
+  .action-btn.danger { border-color: #e74c3c; color: #e74c3c; }
+  .action-btn.danger:hover { background: #e74c3c; color: white; }
+
+  /* REWARDS */
+  .rewards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+  .reward-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    border: 1px solid rgba(45,106,79,0.12);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .reward-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+  }
+  .reward-card.gold::before { background: linear-gradient(90deg, var(--amber), #f5d060); }
+  .reward-card.silver::before { background: linear-gradient(90deg, #8e9eab, #c0c8d0); }
+  .reward-card.bronze::before { background: linear-gradient(90deg, #cd7f32, #e8a97e); }
+  .reward-emoji { font-size: 2.5rem; margin-bottom: 0.8rem; }
+  .reward-card h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--forest); margin-bottom: 0.4rem; }
+  .reward-card p { font-size: 0.82rem; color: var(--subtext); line-height: 1.5; }
+  .reward-points { font-size: 1.4rem; font-weight: 800; color: var(--amber); margin-top: 0.8rem; }
+
+  /* UPLOAD PROOF */
+  .proof-section {
+    background: var(--mist);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 1.5rem;
+    border: 1px solid rgba(82,183,136,0.2);
+  }
+  .proof-section h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--forest); margin-bottom: 0.3rem; }
+  .proof-section p { font-size: 0.82rem; color: var(--subtext); margin-bottom: 1rem; }
+
+  /* NOTIFICATIONS */
+  .notif-banner {
+    background: var(--leaf);
+    color: white;
+    padding: 0.8rem 2rem;
+    text-align: center;
+    font-size: 0.85rem;
+    letter-spacing: 0.3px;
+  }
+  .notif-banner a { color: var(--sage); text-decoration: underline; cursor: pointer; }
+
+  /* MOBILE */
+  @media (max-width: 640px) {
+    .stats-strip { grid-template-columns: repeat(2, 1fr); }
+    .form-grid { grid-template-columns: 1fr; }
+    .tracker-form { flex-direction: column; }
+    .nav-tabs { display: none; }
+  }
+
+  .text-center { text-align: center; }
+  .mt-1 { margin-top: 1rem; }
+  .divider { height: 1px; background: rgba(45,106,79,0.08); margin: 1.5rem 0; }
+
+  .info-box {
+    background: rgba(82,183,136,0.08);
+    border-left: 3px solid var(--lime);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    color: var(--subtext);
+    line-height: 1.6;
+  }
+  .info-box strong { color: var(--leaf); }
+`;
+
+const MOCK_REQUESTS = [
+  { uid: "HS-2024-0047", name: "Ramesh Sharma", village: "Amlaha", saplings: 2, location: "Near Govt School", status: "pending", date: "28 Feb 2026" },
+  { uid: "HS-2024-0043", name: "Sunita Patel", village: "Berkheda", saplings: 3, location: "Home Backyard", status: "approved", date: "27 Feb 2026" },
+  { uid: "HS-2024-0038", name: "Vikram Singh", village: "Shyampur", saplings: 2, location: "Road Side", status: "collected", date: "25 Feb 2026" },
+  { uid: "HS-2024-0031", name: "Meena Devi", village: "Amlaha", saplings: 4, location: "Community Park", status: "complete", date: "20 Feb 2026" },
+  { uid: "HS-2024-0024", name: "Ajay Kumar", village: "Tindoli", saplings: 2, location: "Farmland Border", status: "complete", date: "15 Feb 2026" },
+];
+
+const STATUS_COLORS = { pending: "status-pending", approved: "status-approved", collected: "status-collected", complete: "status-complete" };
+const STATUS_LABELS = { pending: "⏳ Verification Pending", approved: "✅ Approved", collected: "🌱 Sapling Collected", complete: "🌳 Plantation Complete" };
+const STATUS_PROGRESS = { pending: 25, approved: 50, collected: 75, complete: 100 };
+
+function generateUID() {
+  return "HS-2026-" + String(Math.floor(1000 + Math.random() * 9000));
+}
+
+function HaritSetu() {
+  const [tab, setTab] = useState("home");
+  const [form, setForm] = useState({ name: "", mobile: "", aadhaar: "", village: "", ward: "", location: "", saplings: "2", landType: "", photoUploaded: false });
+  const [submitted, setSubmitted] = useState(false);
+  const [uid, setUid] = useState("");
+  const [trackId, setTrackId] = useState("");
+  const [trackedRequest, setTrackedRequest] = useState(null);
+  const [proofUploaded, setProofUploaded] = useState(false);
+  const [dashTab, setDashTab] = useState("requests");
+
+  const handleSubmit = () => {
+    if (!form.name || !form.mobile || !form.village || !form.location) {
+      alert("Kripya sabhi zaroori fields bharein.");
+      return;
+    }
+    const newUid = generateUID();
+    setUid(newUid);
+    setSubmitted(true);
+  };
+
+  const handleTrack = () => {
+    const found = MOCK_REQUESTS.find(r => r.uid === trackId.toUpperCase()) || 
+      (trackId.toUpperCase().startsWith("HS") ? { uid: trackId.toUpperCase(), name: form.name || "Aapka", village: form.village || "Aapka gaon", saplings: form.saplings, location: form.location || "Submitted Location", status: "pending", date: new Date().toLocaleDateString('en-IN') } : null);
+    setTrackedRequest(found || { uid: "HS-2026-DEMO", name: "Ramesh Sharma", village: "Amlaha", saplings: 2, location: "Near Govt School", status: "approved", date: "28 Feb 2026" });
+  };
+
+  return (
+    <div className="app">
+      <style>{styles}</style>
+
+      {/* NOTIFICATION BANNER */}
+      <div className="notif-banner">
+        🌿 <strong>TheGreenAwakeningFestival 2026</strong> — 15 March ko registration kholega! &nbsp;<a onClick={() => setTab("home")}>Aur jaanein →</a>
+      </div>
+
+      {/* NAV */}
+      <nav className="nav">
+        <div className="nav-brand" onClick={() => { setTab("home"); setSubmitted(false); }}>
+          🌱 <span>Harit</span>Setu
+        </div>
+        <div className="nav-tabs">
+          {[
+            { id: "home", label: "Home" },
+            { id: "apply", label: "Sapling Apply" },
+            { id: "track", label: "Track Status" },
+            { id: "rewards", label: "Rewards 🏆" },
+            { id: "dashboard", label: "Parshad Dashboard", badge: "3" },
+          ].map(t => (
+            <button key={t.id} className={`nav-tab ${tab === t.id ? "active" : ""}`} onClick={() => { setTab(t.id); if (t.id !== "apply") setSubmitted(false); }}>
+              {t.label}
+              {t.badge && <span className="nav-badge">{t.badge}</span>}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* HOME TAB */}
+      {tab === "home" && (
+        <>
+          <div className="hero">
+            <div className="hero-tag">Abhyuday Social Welfare Group · Plantation Sector</div>
+            <h1>Seedha <em>Parshad Office</em> se<br/>Paayein Muft Sapling</h1>
+            <p>Harit Setu — ek digital platform jo aapko aur aapke parshad ko jodta hai. Ek simple form bharein, location verify ho, aur seedha apni local nursery se free sapling lein.</p>
+            <div className="hero-btns">
+              <button className="btn-primary" onClick={() => setTab("apply")}>🌱 Abhi Apply Karein</button>
+              <button className="btn-outline" onClick={() => setTab("track")}>📍 Status Track Karein</button>
+            </div>
+          </div>
+
+          <div className="stats-strip">
+            {[
+              { num: "1,240+", label: "Saplings Distributed" },
+              { num: "48", label: "Active Weeks — #twosaplingsweek" },
+              { num: "12", label: "Panchayat Wards" },
+              { num: "94%", label: "Survival Rate Reported" },
+            ].map((s, i) => (
+              <div key={i} className="stat-item">
+                <div className="stat-num">{s.num}</div>
+                <div className="stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="section">
+            <div className="section-title">Kaam Kaise Karta Hai?</div>
+            <div className="section-sub">Sirf 4 simple steps mein — aap ghar par ped laga sakte hain, bilkul muft!</div>
+            <div className="how-grid">
+              {[
+                { step: "1", emoji: "📝", title: "Form Bharein", desc: "Apna naam, mobile, village aur planting location ki detail aur photo upload karein." },
+                { step: "2", emoji: "🔍", title: "Verification", desc: "Parshad office aapki location verify karega — usually 1-2 din mein." },
+                { step: "3", emoji: "🎫", title: "UID Milega", desc: "SMS/WhatsApp par ek unique ticket ID aayega. Is ID ko parshad office le jaayein." },
+                { step: "4", emoji: "🌱", title: "Sapling Lein", desc: "Apna UID show karein, free sapling lein, aur plant karne ke baad photo upload karein." },
+                { step: "5", emoji: "🏆", title: "Reward Paayein", desc: "Plantation proof se reward points milenge — certificates, recognition, aur surprise gifts!" },
+              ].map((c) => (
+                <div key={c.step} className="how-card">
+                  <span className="how-emoji">{c.emoji}</span>
+                  <div className="how-step">{c.step}</div>
+                  <h3>{c.title}</h3>
+                  <p>{c.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ background: "var(--forest)", padding: "4rem 2rem", textAlign: "center" }}>
+            <div style={{ maxWidth: 600, margin: "0 auto" }}>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", color: "white", marginBottom: "0.8rem" }}>
+                TheGreenAwakening<span style={{ color: "var(--sage)" }}>Festival</span> 2026
+              </div>
+              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.95rem", lineHeight: 1.7, marginBottom: "2rem" }}>
+                Har saal ek mahaayojan — jahan Abhyuday Nursery ke thousands saplings distribute hote hain, mass plantation hoti hai, aur poora community ek saath "harit kranti" karta hai.
+              </p>
+              <div style={{ display: "flex", gap: "2rem", justifyContent: "center", flexWrap: "wrap" }}>
+                {[["📅", "15 March 2026"], ["📍", "Abhyuday Nursery Ground"], ["🌱", "500+ Saplings"], ["👥", "Open for All"]].map(([icon, text]) => (
+                  <div key={text} style={{ color: "var(--sage)", fontSize: "0.85rem" }}>{icon} {text}</div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* APPLY TAB */}
+      {tab === "apply" && (
+        <div className="section">
+          {!submitted ? (
+            <>
+              <div className="section-title">Sapling ke liye Apply Karein</div>
+              <div className="section-sub">Yeh form bharkar aap muft sapling ke liye request kar sakte hain. Verification ke baad aapko SMS se UID milega.</div>
+              <div className="form-container">
+                <div className="info-box">
+                  <strong>📋 Jaruri Jankari:</strong> Van Vibhag aur Parshad ka partnership hai — isliye saplings bilkul <strong>free</strong> milenge. Sirf plantation location genuine honi chahiye.
+                </div>
+                <div className="form-section-title">Personal Details</div>
+                <div className="form-section-sub">Aapki pehchaan ke liye zaroori jankari</div>
+                <div className="form-grid">
+                  <div className="form-field">
+                    <label className="form-label">Poora Naam <span>*</span></label>
+                    <input className="form-input" placeholder="Jaise: Ramesh Kumar Sharma" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+                  </div>
+                  <div className="form-field">
+                    <label className="form-label">Mobile Number <span>*</span></label>
+                    <input className="form-input" type="tel" placeholder="10-digit mobile" value={form.mobile} onChange={e => setForm({ ...form, mobile: e.target.value })} />
+                  </div>
+                  <div className="form-field">
+                    <label className="form-label">Aadhaar Number (Optional)</label>
+                    <input className="form-input" placeholder="XXXX-XXXX-XXXX" value={form.aadhaar} onChange={e => setForm({ ...form, aadhaar: e.target.value })} />
+                    <div className="form-hint">Sirf last 4 digits store hongi</div>
+                  </div>
+                  <div className="form-field">
+                    <label className="form-label">Ward Number</label>
+                    <select className="form-input form-select" value={form.ward} onChange={e => setForm({ ...form, ward: e.target.value })}>
+                      <option value="">Ward chunein</option>
+                      {[1,2,3,4,5,6,7,8,9,10,11,12].map(w => <option key={w} value={w}>Ward {w}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-field">
+                    <label className="form-label">Gaon / Mohalla <span>*</span></label>
+                    <input className="form-input" placeholder="Jaise: Amlaha, Berkheda" value={form.village} onChange={e => setForm({ ...form, village: e.target.value })} />
+                  </div>
+                  <div className="form-field">
+                    <label className="form-label">Kitni Saplings Chahiye?</label>
+                    <select className="form-input form-select" value={form.saplings} onChange={e => setForm({ ...form, saplings: e.target.value })}>
+                      {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} Sapling{n > 1 ? "s" : ""}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="divider" />
+                <div className="form-section-title">Plantation Location</div>
+                <div className="form-section-sub">Jahan aap sapling lagaenge, uski jankari dein</div>
+                <div className="form-field">
+                  <label className="form-label">Location Description <span>*</span></label>
+                  <input className="form-input" placeholder="Jaise: Ghar ke pichhe khali zameen, School ke samne, etc." value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} />
+                </div>
+                <div className="form-field">
+                  <label className="form-label">Zameen ka Prakar</label>
+                  <select className="form-input form-select" value={form.landType} onChange={e => setForm({ ...form, landType: e.target.value })}>
+                    <option value="">Type chunein</option>
+                    <option>Niji Zameen (Private)</option>
+                    <option>Sarkaari Zameen</option>
+                    <option>Sadak Kinare</option>
+                    <option>School / Anganwadi Premises</option>
+                    <option>Community Area / Park</option>
+                    <option>Khet ki Mend</option>
+                  </select>
+                </div>
+                <div className="form-field">
+                  <label className="form-label">Location Photo <span>*</span></label>
+                  <div className={`upload-box ${form.photoUploaded ? "uploaded" : ""}`} onClick={() => setForm({ ...form, photoUploaded: !form.photoUploaded })}>
+                    <div className="upload-icon">{form.photoUploaded ? "✅" : "📸"}</div>
+                    <div className="upload-text">
+                      {form.photoUploaded ? <strong>Photo Successfully Upload Ho Gayi!</strong> : <><strong>Click to Upload</strong> ya drag & drop karein</>}
+                    </div>
+                    {!form.photoUploaded && <div className="upload-text" style={{ marginTop: "0.3rem" }}>JPG, PNG — Max 5MB</div>}
+                  </div>
+                  <div className="form-hint">Parshad is photo se verify karega ki jagah real hai.</div>
+                </div>
+
+                <button className="submit-btn" onClick={handleSubmit}>
+                  🌱 Request Submit Karein
+                </button>
+              </div>
+            </>
+          ) : (
+            <div>
+              <div className="success-card">
+                <div className="success-icon">🎉</div>
+                <h2>Application Submit Ho Gayi!</h2>
+                <p>Aapka Unique Ticket ID hai:</p>
+                <div className="success-uid">{uid}</div>
+                <p>Yeh ID SMS ke zariye <strong>{form.mobile || "aapke mobile"}</strong> par bhi bheja jayega.</p>
+
+                <div className="success-steps">
+                  <h4>Aage Kya Hoga?</h4>
+                  <div className="success-step-item"><div className="step-dot">1</div><div>Parshad office aapki location verify karega (1-2 working days)</div></div>
+                  <div className="success-step-item"><div className="step-dot">2</div><div>Verification ke baad "Approved" SMS milega</div></div>
+                  <div className="success-step-item"><div className="step-dot">3</div><div>Parshad office jaayein, yeh UID dikhaayein, sapling lein</div></div>
+                  <div className="success-step-item"><div className="step-dot">4</div><div>Sapling lagaane ke baad photo upload karein aur reward paayein!</div></div>
+                </div>
+
+                <div className="reward-badge">🏆 50 Green Points milenge plantation ke baad!</div>
+
+                <div className="proof-section">
+                  <h3>📷 Plantation Proof Upload Karein</h3>
+                  <p>Jab aap sapling laga lein, tab yahan photo upload karein. Isse aapke rewards activate honge.</p>
+                  <div className={`upload-box ${proofUploaded ? "uploaded" : ""}`} onClick={() => setProofUploaded(!proofUploaded)}>
+                    <div className="upload-icon">{proofUploaded ? "✅" : "🌳"}</div>
+                    <div className="upload-text">{proofUploaded ? <strong>Proof Upload Ho Gaya! Rewards activate ho gaye 🎉</strong> : <><strong>Planted Sapling Ki Photo</strong> upload karein</>}</div>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: "1.5rem", display: "flex", gap: "0.8rem", justifyContent: "center" }}>
+                  <button className="btn-primary" onClick={() => { setSubmitted(false); setForm({ name: "", mobile: "", aadhaar: "", village: "", ward: "", location: "", saplings: "2", landType: "", photoUploaded: false }); setProofUploaded(false); }}>
+                    Naya Form Bharein
+                  </button>
+                  <button className="btn-outline" onClick={() => { setTrackId(uid); setTab("track"); setTimeout(handleTrack, 100); }}>
+                    Status Track Karein
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TRACK TAB */}
+      {tab === "track" && (
+        <div className="section">
+          <div className="section-title">Application Status Track Karein</div>
+          <div className="section-sub">Apna UID ya Ticket Number daalkar apni request ka status dekhein.</div>
+
+          <div className="tracker-form">
+            <input className="form-input" placeholder="Jaise: HS-2026-1234" value={trackId} onChange={e => setTrackId(e.target.value)} onKeyDown={e => e.key === "Enter" && handleTrack()} />
+            <button className="btn-primary" onClick={handleTrack}>🔍 Track</button>
+          </div>
+
+          {!trackedRequest && (
+            <div style={{ textAlign: "center", padding: "2rem", color: "var(--subtext)", fontSize: "0.9rem" }}>
+              <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔎</div>
+              <div>UID daalein aur Track button dabaayein</div>
+              <div style={{ marginTop: "0.5rem", fontSize: "0.8rem" }}>Demo ke liye: <strong style={{ cursor: "pointer", color: "var(--leaf)" }} onClick={() => { setTrackId("HS-2024-0043"); }}>HS-2024-0043</strong> try karein</div>
+            </div>
+          )}
+
+          {trackedRequest && (
+            <div className="status-card">
+              <div className="status-header">
+                <h3>🌱 {trackedRequest.name} — {trackedRequest.saplings} Sapling(s)</h3>
+                <span className={`status-badge ${STATUS_COLORS[trackedRequest.status]}`}>{STATUS_LABELS[trackedRequest.status]}</span>
+              </div>
+              <div className="status-body">
+                <div className="status-row"><span className="status-key">UID</span><span className="status-val">{trackedRequest.uid}</span></div>
+                <div className="status-row"><span className="status-key">Gaon</span><span className="status-val">{trackedRequest.village}</span></div>
+                <div className="status-row"><span className="status-key">Location</span><span className="status-val">{trackedRequest.location}</span></div>
+                <div className="status-row"><span className="status-key">Apply Date</span><span className="status-val">{trackedRequest.date}</span></div>
+                
+                <div className="divider" />
+                <div style={{ fontSize: "0.8rem", color: "var(--subtext)", marginBottom: "0.5rem", fontWeight: 600 }}>Progress</div>
+                <div className="progress-bar"><div className="progress-fill" style={{ width: STATUS_PROGRESS[trackedRequest.status] + "%" }} /></div>
+                <div className="progress-steps">
+                  {["Applied", "Verified", "Collected", "Planted"].map((s, i) => (
+                    <span key={s} className={`progress-step ${STATUS_PROGRESS[trackedRequest.status] >= (i + 1) * 25 ? "done" : ""}`}>{s}</span>
+                  ))}
+                </div>
+
+                {trackedRequest.status === "approved" && (
+                  <div className="info-box" style={{ marginTop: "1rem" }}>
+                    ✅ <strong>Approved Ho Gayi!</strong> Apna UID <strong>{trackedRequest.uid}</strong> lekar Parshad office jaayein aur sapling collect karein.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* REWARDS TAB */}
+      {tab === "rewards" && (
+        <div className="section">
+          <div className="section-title">🏆 Green Rewards Program</div>
+          <div className="section-sub">Har sapling lagane par milenge reward points — jo badh rahe hain woh community ke liye bhi, aur aapke liye bhi!</div>
+
+          <div style={{ background: "var(--forest)", borderRadius: 12, padding: "2rem", display: "flex", gap: "2rem", alignItems: "center", marginBottom: "2.5rem", flexWrap: "wrap" }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.8rem", marginBottom: "0.3rem" }}>Aapke Green Points</div>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "3rem", color: "var(--amber)" }}>150</div>
+              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem" }}>3 saplings planted ✓</div>
+            </div>
+            <div style={{ flex: 2 }}>
+              <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.8rem", marginBottom: "0.8rem" }}>Next Milestone</div>
+              <div style={{ background: "rgba(255,255,255,0.1)", height: 8, borderRadius: 4, overflow: "hidden" }}>
+                <div style={{ width: "60%", height: "100%", background: "linear-gradient(90deg, var(--amber), #f5d060)", borderRadius: 4 }} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "rgba(255,255,255,0.5)", marginTop: "0.4rem" }}>
+                <span>150 / 250 points</span><span>🥈 Silver Planter</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="rewards-grid">
+            {[
+              { tier: "bronze", emoji: "🥉", title: "Pehla Kadam", desc: "Pehli sapling lagao aur reward pao!", points: "50 Points", condition: "1 Sapling" },
+              { tier: "silver", emoji: "🥈", title: "Silver Planter", desc: "Ek hafte mein 2 saplings lagao — #twosaplingsweek achieve karo!", points: "100 Points", condition: "2+ Saplings / Week" },
+              { tier: "gold", emoji: "🥇", title: "Gold Harit Yodha", desc: "Community ka sabse bada plantation contributor bano!", points: "500 Points", condition: "10+ Saplings" },
+              { tier: "bronze", emoji: "📜", title: "Green Certificate", desc: "Officially recognise ho jao Van Vibhag ki taraf se!", points: "Certificate", condition: "5 Saplings" },
+              { tier: "gold", emoji: "🎉", title: "Festival VIP Pass", desc: "TheGreenAwakeningFestival mein special entry aur recognition!", points: "Special Badge", condition: "20+ Saplings" },
+              { tier: "silver", emoji: "🌍", title: "Carbon Hero Badge", desc: "Online profile pe Carbon Hero badge milta hai!", points: "Digital Badge", condition: "3 Saplings" },
+            ].map((r, i) => (
+              <div key={i} className={`reward-card ${r.tier}`}>
+                <div className="reward-emoji">{r.emoji}</div>
+                <h3>{r.title}</h3>
+                <p>{r.desc}</p>
+                <div style={{ fontSize: "0.75rem", color: "var(--subtext)", marginTop: "0.5rem", background: "var(--mist)", padding: "0.3rem 0.6rem", borderRadius: 4, display: "inline-block" }}>
+                  Condition: {r.condition}
+                </div>
+                <div className="reward-points">{r.points}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* DASHBOARD TAB */}
+      {tab === "dashboard" && (
+        <div className="section">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
+            <div>
+              <div className="section-title">🏛️ Parshad Dashboard</div>
+              <div style={{ color: "var(--subtext)", fontSize: "0.85rem" }}>Ward 3, Amlaha Block — Admin View</div>
+            </div>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              {["requests", "stats"].map(t => (
+                <button key={t} className={`nav-tab ${dashTab === t ? "active" : ""}`} style={{ border: "1px solid rgba(45,106,79,0.2)", borderRadius: 8 }} onClick={() => setDashTab(t)}>
+                  {t === "requests" ? "📋 Requests" : "📊 Statistics"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {dashTab === "requests" && (
+            <>
+              <div className="dash-grid">
+                {[
+                  { icon: "📋", num: "47", label: "Total Applications", accent: false },
+                  { icon: "⏳", num: "8", label: "Pending Verification", accent: false },
+                  { icon: "🌱", num: "31", label: "Saplings Distributed", accent: true },
+                  { icon: "🌳", num: "24", label: "Plantations Confirmed", accent: false },
+                ].map((c, i) => (
+                  <div key={i} className={`dash-card ${c.accent ? "accent" : ""}`}>
+                    <div className="dash-card-icon">{c.icon}</div>
+                    <div className="dash-card-num">{c.num}</div>
+                    <div className="dash-card-label">{c.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="table-wrap">
+                <div className="table-head">
+                  <h3>Recent Applications</h3>
+                  <span style={{ fontSize: "0.8rem", color: "var(--subtext)" }}>3 pending verification</span>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>UID</th><th>Naam</th><th>Gaon</th><th>Saplings</th><th>Location</th><th>Status</th><th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {MOCK_REQUESTS.map((r) => (
+                      <tr key={r.uid}>
+                        <td style={{ fontWeight: 600, color: "var(--leaf)" }}>{r.uid}</td>
+                        <td>{r.name}</td>
+                        <td>{r.village}</td>
+                        <td style={{ textAlign: "center" }}>{r.saplings}</td>
+                        <td style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.location}</td>
+                        <td><span className={`status-badge ${STATUS_COLORS[r.status]}`} style={{ fontSize: "0.72rem" }}>{STATUS_LABELS[r.status]}</span></td>
+                        <td>
+                          {r.status === "pending" && (
+                            <>
+                              <button className="action-btn">✅ Approve</button>
+                              <button className="action-btn danger">❌ Reject</button>
+                            </>
+                          )}
+                          {r.status === "approved" && <button className="action-btn">🎫 Issue UID</button>}
+                          {r.status === "collected" && <button className="action-btn">📷 View Proof</button>}
+                          {r.status === "complete" && <span style={{ color: "var(--leaf)", fontSize: "0.8rem" }}>✓ Done</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+          {dashTab === "stats" && (
+            <>
+              <div className="dash-grid">
+                {[
+                  { icon: "📅", num: "48", label: "Weeks Active (#twosaplingsweek)" },
+                  { icon: "🌱", num: "96+", label: "Saplings via #twosaplingsweek" },
+                  { icon: "🎪", num: "2", label: "GreenAwakeningFestival Events" },
+                  { icon: "🏆", num: "₹0", label: "Cost to Citizens (Always Free)" },
+                ].map((c, i) => <div key={i} className="dash-card"><div className="dash-card-icon">{c.icon}</div><div className="dash-card-num">{c.num}</div><div className="dash-card-label">{c.label}</div></div>)}
+              </div>
+              <div className="table-wrap">
+                <div className="table-head"><h3>Sapling Stock — Abhyuday Nursery</h3></div>
+                <table>
+                  <thead><tr><th>Variety</th><th>Available</th><th>Distributed</th><th>Source</th></tr></thead>
+                  <tbody>
+                    {[
+                      ["Neem (Azadirachta indica)", "45", "32", "Van Vibhag"],
+                      ["Peepal (Ficus religiosa)", "28", "18", "Van Vibhag"],
+                      ["Gulmohar", "30", "15", "Abhyuday Nursery"],
+                      ["Amla (Phyllanthus emblica)", "20", "12", "Van Vibhag"],
+                      ["Bamboo", "50", "40", "Van Vibhag"],
+                    ].map(([n, a, d, s]) => (
+                      <tr key={n}><td style={{ fontWeight: 600 }}>{n}</td><td style={{ color: "var(--leaf)", fontWeight: 700 }}>{a}</td><td>{d}</td><td style={{ color: "var(--subtext)", fontSize: "0.8rem" }}>{s}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* FOOTER */}
+      <div style={{ background: "var(--forest)", padding: "2.5rem 2rem", marginTop: "3rem" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "1.5rem" }}>
+          <div>
+            <div style={{ fontFamily: "'Playfair Display', serif", color: "var(--sage)", fontSize: "1.2rem", marginBottom: "0.4rem" }}>🌱 HaritSetu</div>
+            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.78rem", lineHeight: 1.7 }}>
+              Abhyuday Social Welfare Group<br/>Plantation Sector · #twosaplingsweek
+            </div>
+          </div>
+          <div>
+            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", marginBottom: "0.6rem", textTransform: "uppercase", letterSpacing: "1px" }}>Programs</div>
+            {["#twosaplingsweek", "TheGreenAwakeningFestival", "Abhyuday Nursery", "Van Vibhag Partnership"].map(l => (
+              <div key={l} style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.82rem", marginBottom: "0.3rem" }}>{l}</div>
+            ))}
+          </div>
+          <div>
+            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", marginBottom: "0.6rem", textTransform: "uppercase", letterSpacing: "1px" }}>Problem We Solve</div>
+            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.8rem", lineHeight: 1.7, maxWidth: 250 }}>
+              Land availability · Free sapling access · Community awareness — sabko ek platform par solve karta hai HaritSetu.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<HaritSetu />);
+  </script>
+</body>
+</html>
