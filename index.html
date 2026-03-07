@@ -3,641 +3,390 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HaritSetu — Free Sapling Platform</title>
+  <title>HaritSetu — Free Sapling Platform | Abhyuday Samarpan</title>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
-
   <script type="text/babel">
-    const { useState, useEffect } = React;
-
-    const styles = `
+    const { useState, useEffect, useRef } = React;
+const css = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin:0; padding:0; box-sizing:border-box; }
 
   :root {
     --forest: #1a3a2a;
-    --leaf: #2d6a4f;
-    --lime: #52b788;
-    --sage: #95d5b2;
-    --cream: #f8f4e9;
-    --amber: #d4a017;
-    --soil: #6b4226;
-    --mist: #e8f5ee;
-    --text: #1a2e1f;
-    --subtext: #4a6358;
+    --leaf:   #2d6a4f;
+    --lime:   #52b788;
+    --sage:   #95d5b2;
+    --cream:  #f8f4e9;
+    --amber:  #d4a017;
+    --mist:   #e8f5ee;
+    --text:   #1a2e1f;
+    --sub:    #4a6358;
   }
 
-  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); }
+  .app { min-height:100vh; }
 
-  .app { min-height: 100vh; }
+  @keyframes fadeUp  { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes tagPop  { 0%{opacity:0;transform:scale(.85) translateY(8px)} 70%{transform:scale(1.04)} 100%{opacity:1;transform:scale(1) translateY(0)} }
+  @keyframes shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
+  @keyframes pulsBtn { 0%,100%{box-shadow:0 0 0 0 rgba(82,183,136,.5)} 70%{box-shadow:0 0 0 12px rgba(82,183,136,0)} }
+  @keyframes lineGrw { from{width:0} to{width:60px} }
+  @keyframes orbFlot { 0%,100%{transform:scale(1);opacity:.12} 50%{transform:scale(1.15);opacity:.22} }
+  @keyframes leafUp  { 0%{transform:translateY(0) rotate(0deg);opacity:0} 10%{opacity:.8} 90%{opacity:.4} 100%{transform:translateY(-110vh) rotate(360deg);opacity:0} }
+  @keyframes countIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes bnnrIn  { from{transform:translateY(-100%);opacity:0} to{transform:translateY(0);opacity:1} }
+  @keyframes ticker  { 0%{transform:translateX(100vw)} 100%{transform:translateX(-100%)} }
 
-  /* NAV */
-  .nav {
-    background: var(--forest);
-    padding: 0 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
-  }
-  .nav-brand {
-    font-family: 'Playfair Display', serif;
-    color: var(--sage);
-    font-size: 1.4rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-  }
-  .nav-brand span { color: var(--lime); }
-  .nav-tabs {
-    display: flex;
-    gap: 0.25rem;
-  }
-  .nav-tab {
-    padding: 0.4rem 1rem;
-    border: none;
-    background: transparent;
-    color: rgba(255,255,255,0.6);
-    cursor: pointer;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.2s;
-  }
-  .nav-tab:hover { color: white; background: rgba(255,255,255,0.1); }
-  .nav-tab.active { color: var(--sage); background: rgba(149,213,178,0.15); font-weight: 600; }
-  .nav-badge {
-    background: var(--amber);
-    color: var(--forest);
-    font-size: 0.65rem;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 10px;
-    margin-left: 0.3rem;
-  }
+  .ticker-wrap { background:#0a1f13; border-bottom:2px solid var(--lime); overflow:hidden; white-space:nowrap; height:38px; display:flex; align-items:center; animation:bnnrIn .5s ease both; position:relative; }
+  .ticker-label { background:var(--amber); color:#0a1f13; font-size:.7rem; font-weight:900; height:100%; display:flex; align-items:center; text-transform:uppercase; letter-spacing:2px; flex-shrink:0; z-index:2; position:relative; padding:0 1.2rem 0 1rem; clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%); min-width:130px; justify-content:center; }
+  .ticker-scroll { flex:1; overflow:hidden; position:relative; }
+  .ticker-track { display:inline-block; animation:ticker 55s linear infinite; font-size:.8rem; color:rgba(255,255,255,.88); padding-left:2rem; }
+  .ticker-track:hover { animation-play-state:paused; cursor:default; }
+  .ticker-item { display:inline-block; margin:0 3rem; }
+  .ticker-dot { color:var(--lime); margin:0 .3rem; vertical-align:middle; font-size:.6rem; }
+  .ticker-item a { color:var(--sage); text-decoration:none; font-weight:600; cursor:pointer; border-bottom:1px dotted rgba(149,213,178,.4); transition:color .2s; }
+  .ticker-item a:hover { color:var(--lime); }
 
-  /* HERO */
-  .hero {
-    background: linear-gradient(135deg, var(--forest) 0%, #0d2418 50%, #162d20 100%);
-    padding: 5rem 2rem 4rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at 30% 50%, rgba(82,183,136,0.15) 0%, transparent 60%),
-                radial-gradient(ellipse at 70% 30%, rgba(212,160,23,0.08) 0%, transparent 50%);
-  }
-  .hero-tag {
-    display: inline-block;
-    background: rgba(82,183,136,0.2);
-    border: 1px solid var(--lime);
-    color: var(--lime);
-    padding: 0.3rem 1rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 1.5rem;
-    position: relative;
-  }
-  .hero h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    color: white;
-    line-height: 1.15;
-    margin-bottom: 1rem;
-    position: relative;
-  }
-  .hero h1 em { color: var(--sage); font-style: normal; }
-  .hero p {
-    color: rgba(255,255,255,0.65);
-    font-size: 1rem;
-    max-width: 560px;
-    margin: 0 auto 2.5rem;
-    line-height: 1.7;
-    position: relative;
-  }
-  .hero-btns {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-    position: relative;
-  }
-  .btn-primary {
-    background: var(--lime);
-    color: var(--forest);
-    border: none;
-    padding: 0.8rem 2rem;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 0.95rem;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.2s;
-    letter-spacing: 0.3px;
-  }
-  .btn-primary:hover { background: var(--sage); transform: translateY(-1px); box-shadow: 0 4px 15px rgba(82,183,136,0.4); }
-  .btn-outline {
-    background: transparent;
-    color: var(--sage);
-    border: 1.5px solid var(--sage);
-    padding: 0.8rem 2rem;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.2s;
-  }
-  .btn-outline:hover { background: rgba(149,213,178,0.1); }
+  .nav { background:var(--forest); padding:0 2rem; display:flex; align-items:center; justify-content:space-between; gap:2rem; height:60px; position:sticky; top:0; z-index:100; box-shadow:0 2px 20px rgba(0,0,0,.3); }
+  .nav-brand { font-family:'Playfair Display',serif; color:var(--sage); font-size:1.4rem; display:flex; align-items:center; gap:.5rem; cursor:pointer; white-space:nowrap; flex-shrink:0; padding-right:1rem; border-right:1px solid rgba(149,213,178,.2); }
+  .nav-brand span { color:var(--lime); }
+  .nav-tabs { display:flex; gap:.25rem; flex:1; height:100%; align-items:center; }
+  .nav-tab { padding:.4rem .85rem; border:none; background:transparent; color:rgba(255,255,255,.6); cursor:pointer; border-radius:6px; font-size:.82rem; font-family:'DM Sans',sans-serif; transition:all .2s; height:36px; display:flex; align-items:center; white-space:nowrap; }
+  .nav-tab:hover { color:white; background:rgba(255,255,255,.1); }
+  .nav-tab.active { color:var(--sage); background:rgba(149,213,178,.15); font-weight:600; box-shadow:none; outline:none; }
+  .nav-badge { background:var(--amber); color:var(--forest); font-size:.65rem; font-weight:700; padding:2px 6px; border-radius:10px; margin-left:.3rem; }
+  .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; padding:4px; background:none; border:none; }
+  .hamburger span { display:block; width:22px; height:2px; background:var(--sage); border-radius:2px; transition:all .3s; }
+  .hamburger.open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2){ opacity:0; }
+  .hamburger.open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
+  .mob-menu { display:none; position:fixed; top:64px; left:0; right:0; background:#0d2418; z-index:99; flex-direction:column; padding:.5rem; box-shadow:0 8px 30px rgba(0,0,0,.4); border-bottom:1px solid rgba(82,183,136,.2); }
+  .mob-menu.open { display:flex; }
+  .mob-menu .nav-tab { padding:.75rem 1rem; font-size:.95rem; text-align:left; }
 
-  /* STATS STRIP */
-  .stats-strip {
-    background: var(--leaf);
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0;
-  }
-  .stat-item {
-    padding: 1.5rem;
-    text-align: center;
-    border-right: 1px solid rgba(255,255,255,0.1);
-  }
-  .stat-item:last-child { border-right: none; }
-  .stat-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--sage); font-weight: 700; }
-  .stat-label { font-size: 0.75rem; color: rgba(255,255,255,0.65); margin-top: 0.2rem; letter-spacing: 0.5px; }
+  .hero { background:linear-gradient(135deg,var(--forest) 0%,#0d2418 50%,#162d20 100%); padding:5rem 2rem 4rem; text-align:center; position:relative; overflow:hidden; }
+  .orb { position:absolute; border-radius:50%; filter:blur(60px); pointer-events:none; animation:orbFlot ease-in-out infinite; }
+  .leaf { position:absolute; pointer-events:none; user-select:none; z-index:0; animation:leafUp linear infinite; }
 
-  /* SECTIONS */
-  .section { padding: 4rem 2rem; max-width: 1100px; margin: 0 auto; }
-  .section-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 2rem;
-    color: var(--forest);
-    margin-bottom: 0.5rem;
-  }
-  .section-sub { color: var(--subtext); font-size: 0.95rem; margin-bottom: 2.5rem; line-height: 1.6; }
+  .hero-tag { display:inline-block; background:rgba(82,183,136,.2); border:1px solid var(--lime); color:var(--lime); padding:.3rem 1rem; border-radius:20px; font-size:.75rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:1.5rem; position:relative; z-index:1; animation:tagPop .7s cubic-bezier(.34,1.56,.64,1) .1s both; }
+  .hero h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,5vw,3.5rem); color:white; line-height:1.15; margin-bottom:1rem; position:relative; z-index:1; animation:fadeUp .8s cubic-bezier(.22,1,.36,1) .3s both; }
+  .hero h1 em { font-style:normal; background:linear-gradient(90deg,var(--sage),var(--lime),var(--sage)); background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; animation:shimmer 3s linear 1.2s infinite; }
+  .uline { display:block; height:3px; width:0; background:linear-gradient(90deg,transparent,var(--lime),transparent); border-radius:2px; margin:.6rem auto 0; animation:lineGrw 1s cubic-bezier(.22,1,.36,1) 1s forwards; }
+  .hero p { color:rgba(255,255,255,.65); font-size:1rem; max-width:560px; margin:0 auto 2.5rem; line-height:1.7; position:relative; z-index:1; animation:fadeUp .8s cubic-bezier(.22,1,.36,1) .5s both; }
+  .hero-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; position:relative; z-index:1; animation:fadeUp .8s cubic-bezier(.22,1,.36,1) .7s both; }
 
-  /* HOW IT WORKS */
-  .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
-  .how-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1.8rem 1.5rem;
-    border: 1px solid rgba(45,106,79,0.12);
-    position: relative;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .how-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(45,106,79,0.12); }
-  .how-step {
-    width: 40px;
-    height: 40px;
-    background: var(--mist);
-    border: 2px solid var(--lime);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    color: var(--leaf);
-    font-size: 1rem;
-    margin-bottom: 1rem;
-  }
-  .how-card h3 { font-size: 0.95rem; font-weight: 700; color: var(--forest); margin-bottom: 0.4rem; }
-  .how-card p { font-size: 0.82rem; color: var(--subtext); line-height: 1.6; }
-  .how-emoji { font-size: 1.5rem; margin-bottom: 0.8rem; display: block; }
+  .btn-p { background:var(--lime); color:var(--forest); border:none; padding:.8rem 2rem; border-radius:8px; font-weight:700; font-size:.95rem; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .25s cubic-bezier(.34,1.56,.64,1); animation:pulsBtn 2.5s ease-out 2s infinite; }
+  .btn-p:hover { background:var(--sage); transform:translateY(-3px) scale(1.03); box-shadow:0 8px 25px rgba(82,183,136,.45); }
+  .btn-o { background:transparent; color:var(--sage); border:1.5px solid var(--sage); padding:.8rem 2rem; border-radius:8px; font-weight:600; font-size:.95rem; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .25s cubic-bezier(.34,1.56,.64,1); }
+  .btn-o:hover { background:rgba(149,213,178,.12); border-color:var(--lime); transform:translateY(-2px); }
 
-  /* FORM */
-  .form-container {
-    background: white;
-    border-radius: 16px;
-    padding: 2.5rem;
-    border: 1px solid rgba(45,106,79,0.12);
-    box-shadow: 0 4px 30px rgba(0,0,0,0.06);
-    max-width: 700px;
-    margin: 0 auto;
-  }
-  .form-section-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
-    color: var(--forest);
-    margin-bottom: 0.3rem;
-  }
-  .form-section-sub { font-size: 0.85rem; color: var(--subtext); margin-bottom: 2rem; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .form-field { margin-bottom: 1.2rem; }
-  .form-field.full { grid-column: 1 / -1; }
-  .form-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--forest); margin-bottom: 0.4rem; letter-spacing: 0.3px; }
-  .form-label span { color: #e74c3c; }
-  .form-input {
-    width: 100%;
-    padding: 0.7rem 1rem;
-    border: 1.5px solid rgba(45,106,79,0.2);
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-family: 'DM Sans', sans-serif;
-    color: var(--text);
-    background: var(--cream);
-    transition: border-color 0.2s, box-shadow 0.2s;
-    outline: none;
-  }
-  .form-input:focus { border-color: var(--lime); box-shadow: 0 0 0 3px rgba(82,183,136,0.15); background: white; }
-  .form-select { appearance: none; cursor: pointer; }
-  .upload-box {
-    border: 2px dashed rgba(45,106,79,0.3);
-    border-radius: 8px;
-    padding: 2rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: var(--mist);
-  }
-  .upload-box:hover { border-color: var(--lime); background: rgba(82,183,136,0.08); }
-  .upload-box.uploaded { border-color: var(--lime); background: rgba(82,183,136,0.1); border-style: solid; }
-  .upload-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-  .upload-text { font-size: 0.82rem; color: var(--subtext); }
-  .upload-text strong { color: var(--leaf); }
-  .form-hint { font-size: 0.75rem; color: var(--subtext); margin-top: 0.3rem; font-style: italic; }
-  .submit-btn {
-    width: 100%;
-    padding: 1rem;
-    background: var(--leaf);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.2s;
-    margin-top: 0.5rem;
-    letter-spacing: 0.3px;
-  }
-  .submit-btn:hover { background: var(--forest); transform: translateY(-1px); box-shadow: 0 4px 15px rgba(45,106,79,0.3); }
+  .stats-strip { background:var(--leaf); display:grid; grid-template-columns:repeat(4,1fr); }
+  .stat-item { padding:1.5rem; text-align:center; border-right:1px solid rgba(255,255,255,.1); transition:background .3s; animation:countIn .6s ease both; }
+  .stat-item:last-child { border-right:none; }
+  .stat-item:hover { background:rgba(255,255,255,.06); }
+  .stat-item:nth-child(1){ animation-delay:.1s; }
+  .stat-item:nth-child(2){ animation-delay:.25s; }
+  .stat-item:nth-child(3){ animation-delay:.4s; }
+  .stat-item:nth-child(4){ animation-delay:.55s; }
+  .stat-num { font-family:'Playfair Display',serif; font-size:2rem; color:var(--sage); font-weight:700; }
+  .stat-lbl { font-size:.75rem; color:rgba(255,255,255,.65); margin-top:.2rem; letter-spacing:.5px; }
 
-  /* SUCCESS CARD */
-  .success-card {
-    background: white;
-    border-radius: 16px;
-    padding: 3rem 2rem;
-    text-align: center;
-    border: 1px solid rgba(82,183,136,0.3);
-    max-width: 500px;
-    margin: 0 auto;
-    box-shadow: 0 8px 40px rgba(45,106,79,0.12);
-  }
-  .success-icon { font-size: 3.5rem; margin-bottom: 1rem; }
-  .success-uid {
-    background: var(--forest);
-    color: var(--sage);
-    padding: 1.2rem 2rem;
-    border-radius: 12px;
-    font-family: 'Playfair Display', serif;
-    font-size: 2rem;
-    letter-spacing: 4px;
-    margin: 1.5rem 0;
-    display: inline-block;
-  }
-  .success-card h2 { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--forest); margin-bottom: 0.5rem; }
-  .success-card p { color: var(--subtext); font-size: 0.9rem; line-height: 1.6; margin-bottom: 0.5rem; }
-  .success-steps { text-align: left; background: var(--mist); border-radius: 10px; padding: 1.2rem 1.5rem; margin: 1.2rem 0; }
-  .success-steps h4 { font-size: 0.8rem; font-weight: 700; color: var(--leaf); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem; }
-  .success-step-item { display: flex; gap: 0.7rem; margin-bottom: 0.6rem; font-size: 0.85rem; color: var(--subtext); align-items: flex-start; }
-  .step-dot { width: 18px; height: 18px; background: var(--lime); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.6rem; font-weight: 800; flex-shrink: 0; margin-top: 1px; }
-  .reward-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: linear-gradient(135deg, var(--amber), #e8b84b);
-    color: var(--forest);
-    padding: 0.5rem 1.2rem;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    margin-top: 1rem;
-  }
+  .section { padding:4rem 2rem; max-width:1100px; margin:0 auto; }
+  .sec-title { font-family:'Playfair Display',serif; font-size:2rem; color:var(--forest); margin-bottom:.5rem; }
+  .sec-sub { color:var(--sub); font-size:.95rem; margin-bottom:2.5rem; line-height:1.6; }
 
-  /* TRACKER */
-  .tracker-form {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    border: 1px solid rgba(45,106,79,0.12);
-    max-width: 500px;
-    margin: 0 auto 2rem;
-    display: flex;
-    gap: 0.8rem;
-  }
-  .tracker-form input { flex: 1; }
-  .tracker-form .btn-primary { padding: 0.7rem 1.5rem; white-space: nowrap; font-size: 0.9rem; }
-  .status-card {
-    background: white;
-    border-radius: 12px;
-    border: 1px solid rgba(45,106,79,0.12);
-    max-width: 600px;
-    margin: 0 auto;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-  }
-  .status-header {
-    background: var(--forest);
-    padding: 1.5rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .status-header h3 { color: white; font-family: 'Playfair Display', serif; font-size: 1.2rem; }
-  .status-badge {
-    padding: 0.3rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  .status-pending { background: rgba(212,160,23,0.2); color: var(--amber); }
-  .status-approved { background: rgba(82,183,136,0.2); color: var(--lime); }
-  .status-collected { background: rgba(149,213,178,0.2); color: var(--leaf); }
-  .status-complete { background: rgba(82,183,136,0.3); color: var(--leaf); }
-  .status-body { padding: 1.5rem 2rem; }
-  .status-row { display: flex; justify-content: space-between; margin-bottom: 0.8rem; font-size: 0.88rem; }
-  .status-key { color: var(--subtext); }
-  .status-val { color: var(--text); font-weight: 600; }
-  .progress-bar { height: 6px; background: var(--mist); border-radius: 3px; margin: 1.5rem 0; overflow: hidden; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--leaf), var(--lime)); border-radius: 3px; transition: width 0.5s ease; }
-  .progress-steps { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--subtext); }
-  .progress-step.done { color: var(--leaf); font-weight: 600; }
+  .how-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1.5rem; margin-top:2rem; }
+  .how-card { background:white; border-radius:12px; padding:1.8rem 1.5rem; border:1px solid rgba(45,106,79,.12); opacity:0; transform:translateY(28px) scale(.97); transition:opacity .5s ease,transform .5s cubic-bezier(.22,1,.36,1),box-shadow .3s; }
+  .how-card.vis { opacity:1; transform:translateY(0) scale(1); }
+  .how-card:hover { transform:translateY(-6px) scale(1.02) !important; box-shadow:0 12px 35px rgba(45,106,79,.18) !important; }
+  .how-step { width:40px; height:40px; background:var(--mist); border:2px solid var(--lime); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--leaf); font-size:1rem; margin-bottom:1rem; transition:all .3s cubic-bezier(.34,1.56,.64,1); }
+  .how-card:hover .how-step { background:var(--leaf); color:white; border-color:var(--leaf); transform:scale(1.1); }
+  .how-card h3 { font-size:.95rem; font-weight:700; color:var(--forest); margin-bottom:.4rem; }
+  .how-card p  { font-size:.82rem; color:var(--sub); line-height:1.6; }
+  .how-em { font-size:1.5rem; margin-bottom:.8rem; display:block; transition:transform .3s cubic-bezier(.34,1.56,.64,1); }
+  .how-card:hover .how-em { transform:scale(1.3) rotate(5deg); }
 
-  /* DASHBOARD */
-  .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
-  .dash-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    border: 1px solid rgba(45,106,79,0.12);
-    transition: transform 0.2s;
-  }
-  .dash-card:hover { transform: translateY(-2px); }
-  .dash-card-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
-  .dash-card-num { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--forest); font-weight: 700; }
-  .dash-card-label { font-size: 0.8rem; color: var(--subtext); }
-  .dash-card.accent { background: var(--forest); border-color: var(--forest); }
-  .dash-card.accent .dash-card-num { color: var(--sage); }
-  .dash-card.accent .dash-card-label { color: rgba(255,255,255,0.6); }
-  .table-wrap {
-    background: white;
-    border-radius: 12px;
-    border: 1px solid rgba(45,106,79,0.12);
-    overflow: hidden;
-  }
-  .table-head {
-    background: var(--mist);
-    padding: 1rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(45,106,79,0.1);
-  }
-  .table-head h3 { font-size: 0.95rem; font-weight: 700; color: var(--forest); }
-  table { width: 100%; border-collapse: collapse; }
-  th { padding: 0.8rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(45,106,79,0.08); background: rgba(248,244,233,0.5); }
-  td { padding: 0.9rem 1rem; font-size: 0.85rem; border-bottom: 1px solid rgba(45,106,79,0.06); }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--mist); }
-  .action-btn {
-    padding: 0.3rem 0.8rem;
-    border: 1.5px solid var(--lime);
-    background: transparent;
-    color: var(--leaf);
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.2s;
-    margin-right: 0.3rem;
-  }
-  .action-btn:hover { background: var(--leaf); color: white; border-color: var(--leaf); }
-  .action-btn.danger { border-color: #e74c3c; color: #e74c3c; }
-  .action-btn.danger:hover { background: #e74c3c; color: white; }
+  .fest-wrap { opacity:0; transform:translateY(20px); transition:opacity .7s ease,transform .7s cubic-bezier(.22,1,.36,1); }
+  .fest-wrap.vis { opacity:1; transform:translateY(0); }
+  .fest-tag { transition:transform .25s cubic-bezier(.34,1.56,.64,1),color .2s; cursor:default; }
+  .fest-tag:hover { transform:translateY(-3px) scale(1.08); color:var(--lime) !important; }
 
-  /* REWARDS */
-  .rewards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
-  .reward-card {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    border: 1px solid rgba(45,106,79,0.12);
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-  .reward-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 4px;
-  }
-  .reward-card.gold::before { background: linear-gradient(90deg, var(--amber), #f5d060); }
-  .reward-card.silver::before { background: linear-gradient(90deg, #8e9eab, #c0c8d0); }
-  .reward-card.bronze::before { background: linear-gradient(90deg, #cd7f32, #e8a97e); }
-  .reward-emoji { font-size: 2.5rem; margin-bottom: 0.8rem; }
-  .reward-card h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--forest); margin-bottom: 0.4rem; }
-  .reward-card p { font-size: 0.82rem; color: var(--subtext); line-height: 1.5; }
-  .reward-points { font-size: 1.4rem; font-weight: 800; color: var(--amber); margin-top: 0.8rem; }
+  .form-box { background:white; border-radius:16px; padding:2.5rem; border:1px solid rgba(45,106,79,.12); box-shadow:0 4px 30px rgba(0,0,0,.06); max-width:700px; margin:0 auto; }
+  .ftitle { font-family:'Playfair Display',serif; font-size:1.5rem; color:var(--forest); margin-bottom:.3rem; }
+  .fsub { font-size:.85rem; color:var(--sub); margin-bottom:2rem; }
+  .fgrid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .ff { margin-bottom:1.2rem; }
+  .flbl { display:block; font-size:.8rem; font-weight:600; color:var(--forest); margin-bottom:.4rem; letter-spacing:.3px; }
+  .flbl span { color:#e74c3c; }
+  .finput { width:100%; padding:.7rem 1rem; border:1.5px solid rgba(45,106,79,.2); border-radius:8px; font-size:.9rem; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--cream); transition:border-color .2s,box-shadow .2s; outline:none; }
+  .finput:focus { border-color:var(--lime); box-shadow:0 0 0 3px rgba(82,183,136,.15); background:white; }
+  .fsel { appearance:none; cursor:pointer; }
+  .upbox { border:2px dashed rgba(45,106,79,.3); border-radius:8px; padding:2rem; text-align:center; cursor:pointer; transition:all .2s; background:var(--mist); }
+  .upbox:hover { border-color:var(--lime); background:rgba(82,183,136,.08); }
+  .upbox.done { border-color:var(--lime); background:rgba(82,183,136,.1); border-style:solid; }
+  .upicon { font-size:2rem; margin-bottom:.5rem; }
+  .uptxt { font-size:.82rem; color:var(--sub); }
+  .uptxt strong { color:var(--leaf); }
+  .fhint { font-size:.75rem; color:var(--sub); margin-top:.3rem; font-style:italic; }
+  .sbtn { width:100%; padding:1rem; background:var(--leaf); color:white; border:none; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .2s; margin-top:.5rem; }
+  .sbtn:hover { background:var(--forest); transform:translateY(-1px); box-shadow:0 4px 15px rgba(45,106,79,.3); }
 
-  /* UPLOAD PROOF */
-  .proof-section {
-    background: var(--mist);
-    border-radius: 12px;
-    padding: 2rem;
-    margin-top: 1.5rem;
-    border: 1px solid rgba(82,183,136,0.2);
-  }
-  .proof-section h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--forest); margin-bottom: 0.3rem; }
-  .proof-section p { font-size: 0.82rem; color: var(--subtext); margin-bottom: 1rem; }
+  .ok-card { background:white; border-radius:16px; padding:3rem 2rem; text-align:center; border:1px solid rgba(82,183,136,.3); max-width:500px; margin:0 auto; box-shadow:0 8px 40px rgba(45,106,79,.12); }
+  .ok-icon { font-size:3.5rem; margin-bottom:1rem; }
+  .ok-uid { background:var(--forest); color:var(--sage); padding:1.2rem 2rem; border-radius:12px; font-family:'Playfair Display',serif; font-size:2rem; letter-spacing:4px; margin:1.5rem 0; display:inline-block; }
+  .ok-card h2 { font-family:'Playfair Display',serif; font-size:1.6rem; color:var(--forest); margin-bottom:.5rem; }
+  .ok-card p { color:var(--sub); font-size:.9rem; line-height:1.6; margin-bottom:.5rem; }
+  .ok-steps { text-align:left; background:var(--mist); border-radius:10px; padding:1.2rem 1.5rem; margin:1.2rem 0; }
+  .ok-steps h4 { font-size:.8rem; font-weight:700; color:var(--leaf); text-transform:uppercase; letter-spacing:1px; margin-bottom:.8rem; }
+  .ok-step { display:flex; gap:.7rem; margin-bottom:.6rem; font-size:.85rem; color:var(--sub); align-items:flex-start; }
+  .dot { width:18px; height:18px; background:var(--lime); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:.6rem; font-weight:800; flex-shrink:0; margin-top:1px; }
+  .rbadge { display:inline-flex; align-items:center; gap:.4rem; background:linear-gradient(135deg,var(--amber),#e8b84b); color:var(--forest); padding:.5rem 1.2rem; border-radius:20px; font-size:.82rem; font-weight:700; margin-top:1rem; }
+  .proof-sec { background:var(--mist); border-radius:12px; padding:2rem; margin-top:1.5rem; border:1px solid rgba(82,183,136,.2); }
+  .proof-sec h3 { font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--forest); margin-bottom:.3rem; }
+  .proof-sec p { font-size:.82rem; color:var(--sub); margin-bottom:1rem; }
 
-  /* NOTIFICATIONS */
-  .notif-banner {
-    background: var(--leaf);
-    color: white;
-    padding: 0.8rem 2rem;
-    text-align: center;
-    font-size: 0.85rem;
-    letter-spacing: 0.3px;
-  }
-  .notif-banner a { color: var(--sage); text-decoration: underline; cursor: pointer; }
+  .trk-form { background:white; border-radius:12px; padding:2rem; border:1px solid rgba(45,106,79,.12); max-width:500px; margin:0 auto 2rem; display:flex; gap:.8rem; }
+  .trk-form input { flex:1; }
+  .stat-card { background:white; border-radius:12px; border:1px solid rgba(45,106,79,.12); max-width:600px; margin:0 auto; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,.06); }
+  .stat-hdr { background:var(--forest); padding:1.5rem 2rem; display:flex; justify-content:space-between; align-items:center; }
+  .stat-hdr h3 { color:white; font-family:'Playfair Display',serif; font-size:1.2rem; }
+  .sbadge { padding:.3rem .8rem; border-radius:20px; font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+  .sp { background:rgba(212,160,23,.2); color:var(--amber); }
+  .sa { background:rgba(82,183,136,.2); color:var(--lime); }
+  .sc { background:rgba(149,213,178,.2); color:var(--leaf); }
+  .sd { background:rgba(82,183,136,.3); color:var(--leaf); }
+  .stat-bdy { padding:1.5rem 2rem; }
+  .srow { display:flex; justify-content:space-between; margin-bottom:.8rem; font-size:.88rem; }
+  .sk { color:var(--sub); }
+  .sv { color:var(--text); font-weight:600; }
+  .prog-bar { height:6px; background:var(--mist); border-radius:3px; margin:1.5rem 0; overflow:hidden; }
+  .prog-fill { height:100%; background:linear-gradient(90deg,var(--leaf),var(--lime)); border-radius:3px; transition:width .5s ease; }
+  .prog-steps { display:flex; justify-content:space-between; font-size:.72rem; color:var(--sub); }
+  .prog-done { color:var(--leaf); font-weight:600; }
 
-  /* MOBILE */
-  @media (max-width: 640px) {
-    .stats-strip { grid-template-columns: repeat(2, 1fr); }
-    .form-grid { grid-template-columns: 1fr; }
-    .tracker-form { flex-direction: column; }
-    .nav-tabs { display: none; }
-  }
+  .dash-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1.2rem; margin-bottom:2rem; }
+  .dcard { background:white; border-radius:12px; padding:1.5rem; border:1px solid rgba(45,106,79,.12); transition:transform .2s; }
+  .dcard:hover { transform:translateY(-2px); }
+  .dcard.dk { background:var(--forest); border-color:var(--forest); }
+  .di { font-size:1.8rem; margin-bottom:.8rem; }
+  .dn { font-family:'Playfair Display',serif; font-size:2.2rem; color:var(--forest); font-weight:700; }
+  .dcard.dk .dn { color:var(--sage); }
+  .dl { font-size:.8rem; color:var(--sub); }
+  .dcard.dk .dl { color:rgba(255,255,255,.6); }
+  .twrap { background:white; border-radius:12px; border:1px solid rgba(45,106,79,.12); overflow:hidden; }
+  .thead { background:var(--mist); padding:1rem 1.5rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(45,106,79,.1); }
+  .thead h3 { font-size:.95rem; font-weight:700; color:var(--forest); }
+  table { width:100%; border-collapse:collapse; }
+  th { padding:.8rem 1rem; text-align:left; font-size:.75rem; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid rgba(45,106,79,.08); background:rgba(248,244,233,.5); }
+  td { padding:.9rem 1rem; font-size:.85rem; border-bottom:1px solid rgba(45,106,79,.06); }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:var(--mist); }
+  .abtn { padding:.3rem .8rem; border:1.5px solid var(--lime); background:transparent; color:var(--leaf); border-radius:6px; font-size:.75rem; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .2s; margin-right:.3rem; }
+  .abtn:hover { background:var(--leaf); color:white; border-color:var(--leaf); }
+  .abtn.red { border-color:#e74c3c; color:#e74c3c; }
+  .abtn.red:hover { background:#e74c3c; color:white; }
 
-  .text-center { text-align: center; }
-  .mt-1 { margin-top: 1rem; }
-  .divider { height: 1px; background: rgba(45,106,79,0.08); margin: 1.5rem 0; }
+  .rwds-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1.5rem; }
+  .rcard { background:white; border-radius:12px; padding:2rem; border:1px solid rgba(45,106,79,.12); text-align:center; position:relative; overflow:hidden; transition:transform .2s,box-shadow .2s; }
+  .rcard:hover { transform:translateY(-4px); box-shadow:0 10px 30px rgba(45,106,79,.15); }
+  .rcard::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; }
+  .rcard.gold::before   { background:linear-gradient(90deg,var(--amber),#f5d060); }
+  .rcard.silver::before { background:linear-gradient(90deg,#8e9eab,#c0c8d0); }
+  .rcard.bronze::before { background:linear-gradient(90deg,#cd7f32,#e8a97e); }
+  .rem { font-size:2.5rem; margin-bottom:.8rem; }
+  .rcard h3 { font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--forest); margin-bottom:.4rem; }
+  .rcard p  { font-size:.82rem; color:var(--sub); line-height:1.5; }
+  .rpts { font-size:1.4rem; font-weight:800; color:var(--amber); margin-top:.8rem; }
 
-  .info-box {
-    background: rgba(82,183,136,0.08);
-    border-left: 3px solid var(--lime);
-    border-radius: 0 8px 8px 0;
-    padding: 1rem 1.2rem;
-    margin-bottom: 1.5rem;
-    font-size: 0.85rem;
-    color: var(--subtext);
-    line-height: 1.6;
+  .div { height:1px; background:rgba(45,106,79,.08); margin:1.5rem 0; }
+  .ibox { background:rgba(82,183,136,.08); border-left:3px solid var(--lime); border-radius:0 8px 8px 0; padding:1rem 1.2rem; margin-bottom:1.5rem; font-size:.85rem; color:var(--sub); line-height:1.6; }
+  .ibox strong { color:var(--leaf); }
+
+  @media(max-width:640px){
+    .stats-strip { grid-template-columns:repeat(2,1fr); }
+    .fgrid { grid-template-columns:1fr; }
+    .trk-form { flex-direction:column; }
+    .nav-tabs { display:none; }
+    .hamburger { display:flex; }
   }
-  .info-box strong { color: var(--leaf); }
 `;
 
-const MOCK_REQUESTS = [
-  { uid: "HS-2024-0047", name: "Ramesh Sharma", village: "Amlaha", saplings: 2, location: "Near Govt School", status: "pending", date: "28 Feb 2026" },
-  { uid: "HS-2024-0043", name: "Sunita Patel", village: "Berkheda", saplings: 3, location: "Home Backyard", status: "approved", date: "27 Feb 2026" },
-  { uid: "HS-2024-0038", name: "Vikram Singh", village: "Shyampur", saplings: 2, location: "Road Side", status: "collected", date: "25 Feb 2026" },
-  { uid: "HS-2024-0031", name: "Meena Devi", village: "Amlaha", saplings: 4, location: "Community Park", status: "complete", date: "20 Feb 2026" },
-  { uid: "HS-2024-0024", name: "Ajay Kumar", village: "Tindoli", saplings: 2, location: "Farmland Border", status: "complete", date: "15 Feb 2026" },
+const MOCK = [
+  {uid:"HS-2024-0047",name:"Ramesh Sharma", village:"Adhartal",    saplings:2,location:"Near Govt School",status:"pending",  date:"28 Feb 2026"},
+  {uid:"HS-2024-0043",name:"Sunita Patel",  village:"Napier Town", saplings:3,location:"Home Backyard",   status:"approved", date:"27 Feb 2026"},
+  {uid:"HS-2024-0038",name:"Vikram Singh",  village:"Gorakhpur",   saplings:2,location:"Road Side",       status:"collected",date:"25 Feb 2026"},
+  {uid:"HS-2024-0031",name:"Meena Devi",    village:"Civil Lines", saplings:4,location:"Community Park",  status:"complete", date:"20 Feb 2026"},
+  {uid:"HS-2024-0024",name:"Ajay Kumar",    village:"Ranjhi",      saplings:2,location:"Farmland Border", status:"complete", date:"15 Feb 2026"},
 ];
+const SCOL={pending:"sp",approved:"sa",collected:"sc",complete:"sd"};
+const SLBL={pending:"Pending",approved:"Approved",collected:"Collected",complete:"Complete"};
+const SPRG={pending:25,approved:50,collected:75,complete:100};
+const mkUid=()=>"HS-2026-"+Math.floor(1000+Math.random()*9000);
 
-const STATUS_COLORS = { pending: "status-pending", approved: "status-approved", collected: "status-collected", complete: "status-complete" };
-const STATUS_LABELS = { pending: "⏳ Verification Pending", approved: "✅ Approved", collected: "🌱 Sapling Collected", complete: "🌳 Plantation Complete" };
-const STATUS_PROGRESS = { pending: 25, approved: 50, collected: 75, complete: 100 };
+function App(){
+  const [tab,setTab]       = useState("home");
+  const [menu,setMenu]     = useState(false);
+  const [cv,setCv]         = useState([0,0,0,0]);
+  const [form,setF]        = useState({name:"",mobile:"",aadhaar:"",village:"",ward:"",loc:"",sap:"2",land:"",photo:false});
+  const [done,setDone]     = useState(false);
+  const [theId,setId]      = useState("");
+  const [trkIn,setTrkIn]   = useState("");
+  const [found,setFound]   = useState(null);
+  const [proof,setProof]   = useState(false);
+  const [dtab,setDtab]     = useState("req");
+  const cref               = useRef(false);
 
-function generateUID() {
-  return "HS-2026-" + String(Math.floor(1000 + Math.random() * 9000));
-}
+  useEffect(()=>{
+    if(tab!=="home"||cref.current) return;
+    cref.current=true;
+    const tgts=[1240,48,12,94],dur=1300,t0=performance.now();
+    const tick=now=>{
+      const p=Math.min((now-t0)/dur,1),e=1-Math.pow(1-p,3);
+      setCv(tgts.map(t=>Math.floor(t*e)));
+      if(p<1) requestAnimationFrame(tick);
+    };
+    const id=setTimeout(()=>requestAnimationFrame(tick),500);
+    return ()=>clearTimeout(id);
+  },[tab]);
 
-function HaritSetu() {
-  const [tab, setTab] = useState("home");
-  const [form, setForm] = useState({ name: "", mobile: "", aadhaar: "", village: "", ward: "", location: "", saplings: "2", landType: "", photoUploaded: false });
-  const [submitted, setSubmitted] = useState(false);
-  const [uid, setUid] = useState("");
-  const [trackId, setTrackId] = useState("");
-  const [trackedRequest, setTrackedRequest] = useState(null);
-  const [proofUploaded, setProofUploaded] = useState(false);
-  const [dashTab, setDashTab] = useState("requests");
+  useEffect(()=>{
+    if(tab!=="home") return;
+    const obs=new IntersectionObserver(entries=>{
+      entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add("vis");});
+    },{threshold:0.1,rootMargin:"0px 0px -10px 0px"});
+    const id=setTimeout(()=>{
+      document.querySelectorAll(".how-card").forEach((el,i)=>{el.style.transitionDelay=i*.1+"s";obs.observe(el);});
+      document.querySelectorAll(".fest-wrap").forEach(el=>obs.observe(el));
+    },80);
+    return ()=>{clearTimeout(id);obs.disconnect();};
+  },[tab]);
 
-  const handleSubmit = () => {
-    if (!form.name || !form.mobile || !form.village || !form.location) {
-      alert("Kripya sabhi zaroori fields bharein.");
-      return;
-    }
-    const newUid = generateUID();
-    setUid(newUid);
-    setSubmitted(true);
+  const nav=[
+    {id:"home",    lbl:"Home"},
+    {id:"apply",   lbl:"Apply"},
+    {id:"track",   lbl:"Track Status"},
+    {id:"rewards", lbl:"Rewards"},
+    {id:"about",   lbl:"Our Work"},
+    {id:"dash",    lbl:"Dashboard",badge:"3"},
+  ];
+  const go=id=>{setTab(id);setMenu(false);if(id!=="apply")setDone(false);};
+  const submit=()=>{
+    if(!form.name||!form.mobile||!form.village||!form.loc){alert("Zaroori fields bharein!");return;}
+    setId(mkUid());setDone(true);
+  };
+  const doTrack=()=>{
+    const f=MOCK.find(r=>r.uid===trkIn.toUpperCase());
+    setFound(f||{uid:trkIn||"HS-DEMO",name:"Demo User",village:"Jabalpur",saplings:2,location:"Sample",status:"pending",date:"Today"});
   };
 
-  const handleTrack = () => {
-    const found = MOCK_REQUESTS.find(r => r.uid === trackId.toUpperCase()) || 
-      (trackId.toUpperCase().startsWith("HS") ? { uid: trackId.toUpperCase(), name: form.name || "Aapka", village: form.village || "Aapka gaon", saplings: form.saplings, location: form.location || "Submitted Location", status: "pending", date: new Date().toLocaleDateString('en-IN') } : null);
-    setTrackedRequest(found || { uid: "HS-2026-DEMO", name: "Ramesh Sharma", village: "Amlaha", saplings: 2, location: "Near Govt School", status: "approved", date: "28 Feb 2026" });
-  };
-
-  return (
+  return(
     <div className="app">
-      <style>{styles}</style>
+      <style>{css}</style>
 
-      {/* NOTIFICATION BANNER */}
-      <div className="notif-banner">
-        🌿 <strong>TheGreenAwakeningFestival 2026</strong> — 15 March ko registration kholega! &nbsp;<a onClick={() => setTab("home")}>Aur jaanein →</a>
+      <div className="ticker-wrap">
+        <div className="ticker-label">📺 Breaking News</div>
+        <div className="ticker-scroll">
+          <div className="ticker-track">
+            <span className="ticker-item">🌱 <strong>TheGreenAwakeningFestival 2026</strong> — 15 March ko registration kholega! <a onClick={()=>go("about")}>Abhyuday ka kaam dekhein →</a></span>
+            <span className="ticker-dot">◆</span>
+            <span className="ticker-item">🌳 <strong>#twosaplingsweek</strong> — 48+ hafte se lagaataar 2 saplings har hafte! Aap bhi jodein.</span>
+            <span className="ticker-dot">◆</span>
+            <span className="ticker-item">🏆 <strong>1,240+ saplings</strong> Jabalpur mein Abhyuday Samarpan ke zariye distribute ho chuke hain</span>
+            <span className="ticker-dot">◆</span>
+            <span className="ticker-item">🌿 <strong>Abhyuday Nursery</strong> mein abhi <strong>173+ saplings</strong> uplabdh — Neem, Peepal, Gulmohar, Amla, Bamboo</span>
+            <span className="ticker-dot">◆</span>
+            <span className="ticker-item">📍 <strong>Jabalpur</strong> ke sabhi 79 wards mein free sapling ki facility — <a onClick={()=>go("apply")}>Abhi Apply Karein →</a></span>
+            <span className="ticker-dot">◆</span>
+            <span className="ticker-item">💚 <strong>Abhyuday Samarpan</strong> — Jabalpur ki harit kranti ka hissaa banein! <a onClick={()=>go("about")}>Hamara Kaam Dekhein →</a></span>
+          </div>
+        </div>
       </div>
 
-      {/* NAV */}
       <nav className="nav">
-        <div className="nav-brand" onClick={() => { setTab("home"); setSubmitted(false); }}>
-          🌱 <span>Harit</span>Setu
-        </div>
+        <div className="nav-brand" onClick={()=>go("home")}>🌱 <span>Harit</span>Setu</div>
         <div className="nav-tabs">
-          {[
-            { id: "home", label: "Home" },
-            { id: "apply", label: "Sapling Apply" },
-            { id: "track", label: "Track Status" },
-            { id: "rewards", label: "Rewards 🏆" },
-            { id: "dashboard", label: "Parshad Dashboard", badge: "3" },
-          ].map(t => (
-            <button key={t.id} className={`nav-tab ${tab === t.id ? "active" : ""}`} onClick={() => { setTab(t.id); if (t.id !== "apply") setSubmitted(false); }}>
-              {t.label}
-              {t.badge && <span className="nav-badge">{t.badge}</span>}
+          {nav.map(t=>(
+            <button key={t.id} className={"nav-tab"+(tab===t.id?" active":"")} onClick={()=>go(t.id)}>
+              {t.lbl}{t.badge&&<span className="nav-badge">{t.badge}</span>}
             </button>
           ))}
         </div>
+        <button className={"hamburger"+(menu?" open":"")} onClick={()=>setMenu(!menu)}>
+          <span/><span/><span/>
+        </button>
       </nav>
+      <div className={"mob-menu"+(menu?" open":"")}>
+        {nav.map(t=>(
+          <button key={t.id} className={"nav-tab"+(tab===t.id?" active":"")} onClick={()=>go(t.id)}>
+            {t.lbl}{t.badge&&<span className="nav-badge">{t.badge}</span>}
+          </button>
+        ))}
+      </div>
 
-      {/* HOME TAB */}
-      {tab === "home" && (
+      {tab==="home"&&(
         <>
           <div className="hero">
-            <div className="hero-tag">Abhyuday Social Welfare Group · Plantation Sector</div>
-            <h1>Seedha <em>Parshad Office</em> se<br/>Paayein Muft Sapling</h1>
-            <p>Harit Setu — ek digital platform jo aapko aur aapke parshad ko jodta hai. Ek simple form bharein, location verify ho, aur seedha apni local nursery se free sapling lein.</p>
+            <div className="orb" style={{width:320,height:320,background:"rgba(82,183,136,.12)",top:"-80px",left:"-60px",animationDuration:"7s"}}/>
+            <div className="orb" style={{width:200,height:200,background:"rgba(212,160,23,.08)",top:"30px",right:"-40px",animationDuration:"9s",animationDelay:"2s"}}/>
+            <div className="orb" style={{width:150,height:150,background:"rgba(82,183,136,.08)",bottom:"20px",right:"15%",animationDuration:"11s",animationDelay:"1s"}}/>
+            {["🌿","🍃","🌱","🍀","🌿","🍃"].map((l,i)=>(
+              <span key={i} className="leaf" style={{left:(8+i*16)+"%",bottom:"-5%",fontSize:(1+(i%3)*.4)+"rem",animationDuration:(10+i*3)+"s",animationDelay:(i*1.5)+"s"}}>{l}</span>
+            ))}
+            <div className="hero-tag">Abhyuday Samarpan · Plantation Sector</div>
+            <h1>Seedha <em>Abhyuday Samarpan</em> se<br/>Paayein Muft Sapling<span className="uline"/></h1>
+            <p>HaritSetu — Abhyuday Samarpan ka digital platform. Ek simple form bharein, location verify ho, aur Abhyuday Nursery se free sapling lein.</p>
             <div className="hero-btns">
-              <button className="btn-primary" onClick={() => setTab("apply")}>🌱 Abhi Apply Karein</button>
-              <button className="btn-outline" onClick={() => setTab("track")}>📍 Status Track Karein</button>
+              <button className="btn-p" onClick={()=>go("apply")}>🌱 Abhi Apply Karein</button>
+              <button className="btn-o" onClick={()=>go("track")}>📍 Status Track Karein</button>
             </div>
           </div>
 
           <div className="stats-strip">
-            {[
-              { num: "1,240+", label: "Saplings Distributed" },
-              { num: "48", label: "Active Weeks — #twosaplingsweek" },
-              { num: "12", label: "Panchayat Wards" },
-              { num: "94%", label: "Survival Rate Reported" },
-            ].map((s, i) => (
+            {[["+","Saplings Distributed"],["","Active Weeks — #twosaplingsweek"],["","Areas Covered"],["%","Survival Rate"]].map(([suf,lbl],i)=>(
               <div key={i} className="stat-item">
-                <div className="stat-num">{s.num}</div>
-                <div className="stat-label">{s.label}</div>
+                <div className="stat-num">{cv[i].toLocaleString()}{suf}</div>
+                <div className="stat-lbl">{lbl}</div>
               </div>
             ))}
           </div>
 
           <div className="section">
-            <div className="section-title">Kaam Kaise Karta Hai?</div>
-            <div className="section-sub">Sirf 4 simple steps mein — aap ghar par ped laga sakte hain, bilkul muft!</div>
+            <div className="sec-title">Kaam Kaise Karta Hai?</div>
+            <div className="sec-sub">Sirf 5 steps mein — ghar par ped lagao, bilkul muft!</div>
             <div className="how-grid">
               {[
-                { step: "1", emoji: "📝", title: "Form Bharein", desc: "Apna naam, mobile, village aur planting location ki detail aur photo upload karein." },
-                { step: "2", emoji: "🔍", title: "Verification", desc: "Parshad office aapki location verify karega — usually 1-2 din mein." },
-                { step: "3", emoji: "🎫", title: "UID Milega", desc: "SMS/WhatsApp par ek unique ticket ID aayega. Is ID ko parshad office le jaayein." },
-                { step: "4", emoji: "🌱", title: "Sapling Lein", desc: "Apna UID show karein, free sapling lein, aur plant karne ke baad photo upload karein." },
-                { step: "5", emoji: "🏆", title: "Reward Paayein", desc: "Plantation proof se reward points milenge — certificates, recognition, aur surprise gifts!" },
-              ].map((c) => (
-                <div key={c.step} className="how-card">
-                  <span className="how-emoji">{c.emoji}</span>
-                  <div className="how-step">{c.step}</div>
-                  <h3>{c.title}</h3>
-                  <p>{c.desc}</p>
+                {s:"1",e:"📝",t:"Form Bharein",   d:"Naam, mobile, location ki detail aur photo upload karein."},
+                {s:"2",e:"🔍",t:"Verification",   d:"Abhyuday Samarpan team location verify karegi — 1-2 din mein."},
+                {s:"3",e:"🎫",t:"UID Milega",     d:"SMS par unique ticket ID aayegi. Center le jaayein."},
+                {s:"4",e:"🌱",t:"Sapling Lein",   d:"UID dikhao, Abhyuday Nursery se free sapling lo, photo upload karo."},
+                {s:"5",e:"🏆",t:"Reward Paayein", d:"Plantation proof se Green Points, certificates aur recognition!"},
+              ].map(c=>(
+                <div key={c.s} className="how-card">
+                  <span className="how-em">{c.e}</span>
+                  <div className="how-step">{c.s}</div>
+                  <h3>{c.t}</h3><p>{c.d}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div style={{ background: "var(--forest)", padding: "4rem 2rem", textAlign: "center" }}>
-            <div style={{ maxWidth: 600, margin: "0 auto" }}>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", color: "white", marginBottom: "0.8rem" }}>
-                TheGreenAwakening<span style={{ color: "var(--sage)" }}>Festival</span> 2026
+          <div className="fest-wrap" style={{background:"var(--forest)",padding:"4rem 2rem",textAlign:"center"}}>
+            <div style={{maxWidth:600,margin:"0 auto"}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:"1.8rem",color:"white",marginBottom:".8rem"}}>
+                TheGreenAwakening<span style={{color:"var(--sage)"}}>Festival</span> 2026
               </div>
-              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.95rem", lineHeight: 1.7, marginBottom: "2rem" }}>
-                Har saal ek mahaayojan — jahan Abhyuday Nursery ke thousands saplings distribute hote hain, mass plantation hoti hai, aur poora community ek saath "harit kranti" karta hai.
+              <p style={{color:"rgba(255,255,255,.65)",fontSize:".95rem",lineHeight:1.7,marginBottom:"2rem"}}>
+                Har saal ek mahaayojan — Abhyuday Nursery ke thousands saplings distribute hote hain, mass plantation hoti hai, community Abhyuday Samarpan ke saath "harit kranti" karta hai.
               </p>
-              <div style={{ display: "flex", gap: "2rem", justifyContent: "center", flexWrap: "wrap" }}>
-                {[["📅", "15 March 2026"], ["📍", "Abhyuday Nursery Ground"], ["🌱", "500+ Saplings"], ["👥", "Open for All"]].map(([icon, text]) => (
-                  <div key={text} style={{ color: "var(--sage)", fontSize: "0.85rem" }}>{icon} {text}</div>
+              <div style={{display:"flex",gap:"2rem",justifyContent:"center",flexWrap:"wrap"}}>
+                {[["📅","15 March 2026"],["📍","Abhyuday Nursery"],["🌱","500+ Saplings"],["👥","Open for All"]].map(([ic,tx])=>(
+                  <div key={tx} className="fest-tag" style={{color:"var(--sage)",fontSize:".85rem"}}>{ic} {tx}</div>
                 ))}
               </div>
             </div>
@@ -645,173 +394,167 @@ function HaritSetu() {
         </>
       )}
 
-      {/* APPLY TAB */}
-      {tab === "apply" && (
+      {tab==="apply"&&(
         <div className="section">
-          {!submitted ? (
+          {!done?(
             <>
-              <div className="section-title">Sapling ke liye Apply Karein</div>
-              <div className="section-sub">Yeh form bharkar aap muft sapling ke liye request kar sakte hain. Verification ke baad aapko SMS se UID milega.</div>
-              <div className="form-container">
-                <div className="info-box">
-                  <strong>📋 Jaruri Jankari:</strong> Van Vibhag aur Parshad ka partnership hai — isliye saplings bilkul <strong>free</strong> milenge. Sirf plantation location genuine honi chahiye.
-                </div>
-                <div className="form-section-title">Personal Details</div>
-                <div className="form-section-sub">Aapki pehchaan ke liye zaroori jankari</div>
-                <div className="form-grid">
-                  <div className="form-field">
-                    <label className="form-label">Poora Naam <span>*</span></label>
-                    <input className="form-input" placeholder="Jaise: Ramesh Kumar Sharma" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+              <div className="sec-title">Sapling ke liye Apply Karein</div>
+              <div className="sec-sub">Form bharkar free sapling ke liye request karein. Verification ke baad SMS se UID milega.</div>
+              <div className="form-box">
+                <div className="ibox"><strong>📋 Note:</strong> Abhyuday Samarpan ka initiative hai — saplings bilkul <strong>free</strong>. Sirf location genuine honi chahiye.</div>
+                <div className="ftitle">Personal Details</div>
+                <div className="fsub">Aapki pehchaan ke liye zaroori jankari</div>
+                <div className="fgrid">
+                  <div className="ff">
+                    <label className="flbl">Poora Naam <span>*</span></label>
+                    <input className="finput" placeholder="Ramesh Kumar Sharma" value={form.name} onChange={e=>setF({...form,name:e.target.value})}/>
                   </div>
-                  <div className="form-field">
-                    <label className="form-label">Mobile Number <span>*</span></label>
-                    <input className="form-input" type="tel" placeholder="10-digit mobile" value={form.mobile} onChange={e => setForm({ ...form, mobile: e.target.value })} />
+                  <div className="ff">
+                    <label className="flbl">Mobile <span>*</span></label>
+                    <input className="finput" type="tel" placeholder="10-digit mobile" value={form.mobile} onChange={e=>setF({...form,mobile:e.target.value})}/>
                   </div>
-                  <div className="form-field">
-                    <label className="form-label">Aadhaar Number (Optional)</label>
-                    <input className="form-input" placeholder="XXXX-XXXX-XXXX" value={form.aadhaar} onChange={e => setForm({ ...form, aadhaar: e.target.value })} />
-                    <div className="form-hint">Sirf last 4 digits store hongi</div>
+                  <div className="ff">
+                    <label className="flbl">Aadhaar (Optional)</label>
+                    <input className="finput" placeholder="XXXX-XXXX-XXXX" value={form.aadhaar} onChange={e=>setF({...form,aadhaar:e.target.value})}/>
+                    <div className="fhint">Sirf last 4 digits store hongi</div>
                   </div>
-                  <div className="form-field">
-                    <label className="form-label">Ward Number</label>
-                    <select className="form-input form-select" value={form.ward} onChange={e => setForm({ ...form, ward: e.target.value })}>
-                      <option value="">Ward chunein</option>
-                      {[1,2,3,4,5,6,7,8,9,10,11,12].map(w => <option key={w} value={w}>Ward {w}</option>)}
+                  <div className="ff">
+                    <label className="flbl">Ward Number <span>*</span></label>
+                    <select className="finput fsel" value={form.ward} onChange={e=>setF({...form,ward:e.target.value})}>
+                      <option value="">-- Ward chunein (1-79) --</option>
+                      {Array.from({length:70},(_,i)=>i+1).map(n=><option key={n} value={n}>Ward {n}</option>)}
+                      {[[71,"Lamti"],[72,"Tilhari"],[73,"Kugawan"],[74,"Andhuwa"],[75,"Chhiwlaha"],[76,"Bhatauli"],[77,"Regwa"],[78,"Khairi"],[79,"Rachai"]].map(([n,nm])=>(
+                        <option key={n} value={n}>Ward {n} — {nm}</option>
+                      ))}
                     </select>
                   </div>
-                  <div className="form-field">
-                    <label className="form-label">Gaon / Mohalla <span>*</span></label>
-                    <input className="form-input" placeholder="Jaise: Amlaha, Berkheda" value={form.village} onChange={e => setForm({ ...form, village: e.target.value })} />
+                  <div className="ff">
+                    <label className="flbl">Mohalla / Area <span>*</span></label>
+                    <select className="finput fsel" value={form.village} onChange={e=>setF({...form,village:e.target.value})}>
+                      <option value="">-- Apna mohalla chunein --</option>
+                      <optgroup label="Zone A — Madhya Jabalpur">
+                        {["Napier Town","Civil Lines","Sadar","Cant Area","Wright Town","Model Road","Residency Road","Rani Durgavati Chowk","Shastri Bridge Area","Collectorate Road"].map(x=><option key={x}>{x}</option>)}
+                      </optgroup>
+                      <optgroup label="Zone B — Uttar Jabalpur">
+                        {["Madan Mahal","Vijay Nagar","Subhash Nagar","Kalyanpur","Sharda Vihar","Tilhari","Lamti","Khairi","Rachai","Kugawan","Andhuwa","Chhiwlaha","Bhatauli","Regwa"].map(x=><option key={x}>{x}</option>)}
+                      </optgroup>
+                      <optgroup label="Zone C — Poorv Jabalpur">
+                        {["Gorakhpur","Ranjhi","Garha","Gwarighat Road","Narmada Nagar","Katanga","Marhatal","Sihora Road","Trimurti Nagar","Shakti Nagar","Dhanvantari Nagar"].map(x=><option key={x}>{x}</option>)}
+                      </optgroup>
+                      <optgroup label="Zone D — Paschim Jabalpur">
+                        {["Adhartal","Damoh Naka","Bargi Hills","Jawahar Nagar","Sundur Nagar","Mahendra Nagar","Patel Nagar","Awadhpuri","Aarohi Colony","New Life City","Bargi Dam Area"].map(x=><option key={x}>{x}</option>)}
+                      </optgroup>
+                      <optgroup label="Zone E — Dakshin Jabalpur">
+                        {["Gohalpur","Shahpura","Bhedaghat Road","Russel Chowk","Gol Bazar","Omti Naka","Hanumantal","Chhatarpur Road","Sanjeevani Nagar","Kotwali Area","Nayagaon","Sanjay Nagar"].map(x=><option key={x}>{x}</option>)}
+                      </optgroup>
+                      <optgroup label="Zone F — Outer / Rural Areas">
+                        {["Panagar","Sihora","Majhauli","Patan","Kundam","Shahpura (Rural)","Bhedaghat","Chargawan","Mandla Road Area","Seoni Road Area","Katni Road Area"].map(x=><option key={x}>{x}</option>)}
+                      </optgroup>
+                    </select>
+                    <div className="fhint">Area list mein nahi hai to ward number se identify karein</div>
                   </div>
-                  <div className="form-field">
-                    <label className="form-label">Kitni Saplings Chahiye?</label>
-                    <select className="form-input form-select" value={form.saplings} onChange={e => setForm({ ...form, saplings: e.target.value })}>
-                      {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} Sapling{n > 1 ? "s" : ""}</option>)}
+                  <div className="ff">
+                    <label className="flbl">Kitni Saplings?</label>
+                    <select className="finput fsel" value={form.sap} onChange={e=>setF({...form,sap:e.target.value})}>
+                      {[1,2,3,4,5].map(n=><option key={n} value={n}>{n} Sapling{n>1?"s":""}</option>)}
                     </select>
                   </div>
                 </div>
-
-                <div className="divider" />
-                <div className="form-section-title">Plantation Location</div>
-                <div className="form-section-sub">Jahan aap sapling lagaenge, uski jankari dein</div>
-                <div className="form-field">
-                  <label className="form-label">Location Description <span>*</span></label>
-                  <input className="form-input" placeholder="Jaise: Ghar ke pichhe khali zameen, School ke samne, etc." value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} />
+                <div className="div"/>
+                <div className="ftitle">Plantation Location</div>
+                <div className="fsub">Jahan sapling lagaenge uski jankari dein</div>
+                <div className="ff">
+                  <label className="flbl">Location Description <span>*</span></label>
+                  <input className="finput" placeholder="Ghar ke pichhe khali zameen, School ke samne..." value={form.loc} onChange={e=>setF({...form,loc:e.target.value})}/>
                 </div>
-                <div className="form-field">
-                  <label className="form-label">Zameen ka Prakar</label>
-                  <select className="form-input form-select" value={form.landType} onChange={e => setForm({ ...form, landType: e.target.value })}>
+                <div className="ff">
+                  <label className="flbl">Zameen ka Prakar</label>
+                  <select className="finput fsel" value={form.land} onChange={e=>setF({...form,land:e.target.value})}>
                     <option value="">Type chunein</option>
-                    <option>Niji Zameen (Private)</option>
-                    <option>Sarkaari Zameen</option>
-                    <option>Sadak Kinare</option>
-                    <option>School / Anganwadi Premises</option>
-                    <option>Community Area / Park</option>
-                    <option>Khet ki Mend</option>
+                    {["Niji Zameen (Private)","Sarkaari Zameen","Sadak Kinare","School / Anganwadi","Community Area / Park","Khet ki Mend"].map(x=><option key={x}>{x}</option>)}
                   </select>
                 </div>
-                <div className="form-field">
-                  <label className="form-label">Location Photo <span>*</span></label>
-                  <div className={`upload-box ${form.photoUploaded ? "uploaded" : ""}`} onClick={() => setForm({ ...form, photoUploaded: !form.photoUploaded })}>
-                    <div className="upload-icon">{form.photoUploaded ? "✅" : "📸"}</div>
-                    <div className="upload-text">
-                      {form.photoUploaded ? <strong>Photo Successfully Upload Ho Gayi!</strong> : <><strong>Click to Upload</strong> ya drag & drop karein</>}
-                    </div>
-                    {!form.photoUploaded && <div className="upload-text" style={{ marginTop: "0.3rem" }}>JPG, PNG — Max 5MB</div>}
+                <div className="ff">
+                  <label className="flbl">Location Photo <span>*</span></label>
+                  <div className={"upbox"+(form.photo?" done":"")} onClick={()=>setF({...form,photo:!form.photo})}>
+                    <div className="upicon">{form.photo?"✅":"📸"}</div>
+                    <div className="uptxt">{form.photo?<strong>Photo Upload Ho Gayi!</strong>:<><strong>Click to Upload</strong> ya drag &amp; drop</>}</div>
+                    {!form.photo&&<div className="uptxt" style={{marginTop:".3rem"}}>JPG, PNG — Max 5MB</div>}
                   </div>
-                  <div className="form-hint">Parshad is photo se verify karega ki jagah real hai.</div>
+                  <div className="fhint">Abhyuday Samarpan team is photo se verify karegi ki jagah real hai.</div>
                 </div>
-
-                <button className="submit-btn" onClick={handleSubmit}>
-                  🌱 Request Submit Karein
-                </button>
+                <button className="sbtn" onClick={submit}>🌱 Request Submit Karein</button>
               </div>
             </>
-          ) : (
-            <div>
-              <div className="success-card">
-                <div className="success-icon">🎉</div>
-                <h2>Application Submit Ho Gayi!</h2>
-                <p>Aapka Unique Ticket ID hai:</p>
-                <div className="success-uid">{uid}</div>
-                <p>Yeh ID SMS ke zariye <strong>{form.mobile || "aapke mobile"}</strong> par bhi bheja jayega.</p>
-
-                <div className="success-steps">
-                  <h4>Aage Kya Hoga?</h4>
-                  <div className="success-step-item"><div className="step-dot">1</div><div>Parshad office aapki location verify karega (1-2 working days)</div></div>
-                  <div className="success-step-item"><div className="step-dot">2</div><div>Verification ke baad "Approved" SMS milega</div></div>
-                  <div className="success-step-item"><div className="step-dot">3</div><div>Parshad office jaayein, yeh UID dikhaayein, sapling lein</div></div>
-                  <div className="success-step-item"><div className="step-dot">4</div><div>Sapling lagaane ke baad photo upload karein aur reward paayein!</div></div>
+          ):(
+            <div className="ok-card">
+              <div className="ok-icon">🎉</div>
+              <h2>Application Submit Ho Gayi!</h2>
+              <p>Aapka Unique Ticket ID hai:</p>
+              <div className="ok-uid">{theId}</div>
+              <p>Yeh ID SMS ke zariye <strong>{form.mobile||"aapke mobile"}</strong> par bhi bheja jayega.</p>
+              <div className="ok-steps">
+                <h4>Aage Kya Hoga?</h4>
+                <div className="ok-step"><div className="dot">1</div><div>Abhyuday Samarpan team location verify karegi (1-2 days)</div></div>
+                <div className="ok-step"><div className="dot">2</div><div>Verification ke baad Approved SMS milega</div></div>
+                <div className="ok-step"><div className="dot">3</div><div>Abhyuday Samarpan Center jaayein, UID dikhaayein, sapling lein</div></div>
+                <div className="ok-step"><div className="dot">4</div><div>Sapling lagaane ke baad photo upload karein aur reward paayein!</div></div>
+              </div>
+              <div className="rbadge">🏆 50 Green Points milenge plantation ke baad!</div>
+              <div className="proof-sec">
+                <h3>📷 Plantation Proof Upload Karein</h3>
+                <p>Jab sapling lag jaaye tab yahan photo upload karein. Rewards activate honge.</p>
+                <div className={"upbox"+(proof?" done":"")} onClick={()=>setProof(!proof)}>
+                  <div className="upicon">{proof?"✅":"🌳"}</div>
+                  <div className="uptxt">{proof?<strong>Proof Upload! Rewards activate ho gaye 🎉</strong>:<><strong>Planted Sapling Ki Photo</strong> upload karein</>}</div>
                 </div>
-
-                <div className="reward-badge">🏆 50 Green Points milenge plantation ke baad!</div>
-
-                <div className="proof-section">
-                  <h3>📷 Plantation Proof Upload Karein</h3>
-                  <p>Jab aap sapling laga lein, tab yahan photo upload karein. Isse aapke rewards activate honge.</p>
-                  <div className={`upload-box ${proofUploaded ? "uploaded" : ""}`} onClick={() => setProofUploaded(!proofUploaded)}>
-                    <div className="upload-icon">{proofUploaded ? "✅" : "🌳"}</div>
-                    <div className="upload-text">{proofUploaded ? <strong>Proof Upload Ho Gaya! Rewards activate ho gaye 🎉</strong> : <><strong>Planted Sapling Ki Photo</strong> upload karein</>}</div>
-                  </div>
-                </div>
-
-                <div style={{ marginTop: "1.5rem", display: "flex", gap: "0.8rem", justifyContent: "center" }}>
-                  <button className="btn-primary" onClick={() => { setSubmitted(false); setForm({ name: "", mobile: "", aadhaar: "", village: "", ward: "", location: "", saplings: "2", landType: "", photoUploaded: false }); setProofUploaded(false); }}>
-                    Naya Form Bharein
-                  </button>
-                  <button className="btn-outline" onClick={() => { setTrackId(uid); setTab("track"); setTimeout(handleTrack, 100); }}>
-                    Status Track Karein
-                  </button>
-                </div>
+              </div>
+              <div style={{marginTop:"1.5rem",display:"flex",gap:".8rem",justifyContent:"center"}}>
+                <button className="btn-p" style={{animation:"none"}} onClick={()=>{setDone(false);setF({name:"",mobile:"",aadhaar:"",village:"",ward:"",loc:"",sap:"2",land:"",photo:false});setProof(false);}}>Naya Form</button>
+                <button className="btn-o" onClick={()=>{setTrkIn(theId);go("track");}}>Track Status</button>
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* TRACK TAB */}
-      {tab === "track" && (
+      {tab==="track"&&(
         <div className="section">
-          <div className="section-title">Application Status Track Karein</div>
-          <div className="section-sub">Apna UID ya Ticket Number daalkar apni request ka status dekhein.</div>
-
-          <div className="tracker-form">
-            <input className="form-input" placeholder="Jaise: HS-2026-1234" value={trackId} onChange={e => setTrackId(e.target.value)} onKeyDown={e => e.key === "Enter" && handleTrack()} />
-            <button className="btn-primary" onClick={handleTrack}>🔍 Track</button>
+          <div className="sec-title">Application Status Track Karein</div>
+          <div className="sec-sub">Apna UID daalkar apni request ka status dekhein.</div>
+          <div className="trk-form">
+            <input className="finput" placeholder="Jaise: HS-2026-1234" value={trkIn} onChange={e=>setTrkIn(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doTrack()}/>
+            <button className="btn-p" style={{animation:"none",padding:".7rem 1.5rem",whiteSpace:"nowrap"}} onClick={doTrack}>🔍 Track</button>
           </div>
-
-          {!trackedRequest && (
-            <div style={{ textAlign: "center", padding: "2rem", color: "var(--subtext)", fontSize: "0.9rem" }}>
-              <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔎</div>
+          {!found&&(
+            <div style={{textAlign:"center",padding:"2rem",color:"var(--sub)"}}>
+              <div style={{fontSize:"3rem",marginBottom:"1rem"}}>🔎</div>
               <div>UID daalein aur Track button dabaayein</div>
-              <div style={{ marginTop: "0.5rem", fontSize: "0.8rem" }}>Demo ke liye: <strong style={{ cursor: "pointer", color: "var(--leaf)" }} onClick={() => { setTrackId("HS-2024-0043"); }}>HS-2024-0043</strong> try karein</div>
+              <div style={{marginTop:".5rem",fontSize:".8rem"}}>Demo: <strong style={{cursor:"pointer",color:"var(--leaf)"}} onClick={()=>setTrkIn("HS-2024-0043")}>HS-2024-0043</strong></div>
             </div>
           )}
-
-          {trackedRequest && (
-            <div className="status-card">
-              <div className="status-header">
-                <h3>🌱 {trackedRequest.name} — {trackedRequest.saplings} Sapling(s)</h3>
-                <span className={`status-badge ${STATUS_COLORS[trackedRequest.status]}`}>{STATUS_LABELS[trackedRequest.status]}</span>
+          {found&&(
+            <div className="stat-card">
+              <div className="stat-hdr">
+                <h3>🌱 {found.name} — {found.saplings} Sapling(s)</h3>
+                <span className={"sbadge "+SCOL[found.status]}>{SLBL[found.status]}</span>
               </div>
-              <div className="status-body">
-                <div className="status-row"><span className="status-key">UID</span><span className="status-val">{trackedRequest.uid}</span></div>
-                <div className="status-row"><span className="status-key">Gaon</span><span className="status-val">{trackedRequest.village}</span></div>
-                <div className="status-row"><span className="status-key">Location</span><span className="status-val">{trackedRequest.location}</span></div>
-                <div className="status-row"><span className="status-key">Apply Date</span><span className="status-val">{trackedRequest.date}</span></div>
-                
-                <div className="divider" />
-                <div style={{ fontSize: "0.8rem", color: "var(--subtext)", marginBottom: "0.5rem", fontWeight: 600 }}>Progress</div>
-                <div className="progress-bar"><div className="progress-fill" style={{ width: STATUS_PROGRESS[trackedRequest.status] + "%" }} /></div>
-                <div className="progress-steps">
-                  {["Applied", "Verified", "Collected", "Planted"].map((s, i) => (
-                    <span key={s} className={`progress-step ${STATUS_PROGRESS[trackedRequest.status] >= (i + 1) * 25 ? "done" : ""}`}>{s}</span>
+              <div className="stat-bdy">
+                <div className="srow"><span className="sk">UID</span><span className="sv">{found.uid}</span></div>
+                <div className="srow"><span className="sk">Mohalla</span><span className="sv">{found.village}</span></div>
+                <div className="srow"><span className="sk">Location</span><span className="sv">{found.location}</span></div>
+                <div className="srow"><span className="sk">Date</span><span className="sv">{found.date}</span></div>
+                <div className="div"/>
+                <div style={{fontSize:".8rem",color:"var(--sub)",marginBottom:".5rem",fontWeight:600}}>Progress</div>
+                <div className="prog-bar"><div className="prog-fill" style={{width:SPRG[found.status]+"%"}}/></div>
+                <div className="prog-steps">
+                  {["Applied","Verified","Collected","Planted"].map((s,i)=>(
+                    <span key={s} className={SPRG[found.status]>=(i+1)*25?"prog-done":""}>{s}</span>
                   ))}
                 </div>
-
-                {trackedRequest.status === "approved" && (
-                  <div className="info-box" style={{ marginTop: "1rem" }}>
-                    ✅ <strong>Approved Ho Gayi!</strong> Apna UID <strong>{trackedRequest.uid}</strong> lekar Parshad office jaayein aur sapling collect karein.
+                {found.status==="approved"&&(
+                  <div className="ibox" style={{marginTop:"1rem"}}>
+                    ✅ <strong>Approved!</strong> UID <strong>{found.uid}</strong> lekar Abhyuday Samarpan Center jaayein.
                   </div>
                 )}
               </div>
@@ -820,116 +563,82 @@ function HaritSetu() {
         </div>
       )}
 
-      {/* REWARDS TAB */}
-      {tab === "rewards" && (
+      {tab==="rewards"&&(
         <div className="section">
-          <div className="section-title">🏆 Green Rewards Program</div>
-          <div className="section-sub">Har sapling lagane par milenge reward points — jo badh rahe hain woh community ke liye bhi, aur aapke liye bhi!</div>
-
-          <div style={{ background: "var(--forest)", borderRadius: 12, padding: "2rem", display: "flex", gap: "2rem", alignItems: "center", marginBottom: "2.5rem", flexWrap: "wrap" }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.8rem", marginBottom: "0.3rem" }}>Aapke Green Points</div>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "3rem", color: "var(--amber)" }}>150</div>
-              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem" }}>3 saplings planted ✓</div>
+          <div className="sec-title">🏆 Green Rewards Program</div>
+          <div className="sec-sub">Har sapling lagane par milenge reward points!</div>
+          <div style={{background:"var(--forest)",borderRadius:12,padding:"2rem",display:"flex",gap:"2rem",alignItems:"center",marginBottom:"2.5rem",flexWrap:"wrap"}}>
+            <div style={{flex:1}}>
+              <div style={{color:"rgba(255,255,255,.6)",fontSize:".8rem",marginBottom:".3rem"}}>Aapke Green Points</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:"3rem",color:"var(--amber)"}}>150</div>
+              <div style={{color:"rgba(255,255,255,.5)",fontSize:".8rem"}}>3 saplings planted ✓</div>
             </div>
-            <div style={{ flex: 2 }}>
-              <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.8rem", marginBottom: "0.8rem" }}>Next Milestone</div>
-              <div style={{ background: "rgba(255,255,255,0.1)", height: 8, borderRadius: 4, overflow: "hidden" }}>
-                <div style={{ width: "60%", height: "100%", background: "linear-gradient(90deg, var(--amber), #f5d060)", borderRadius: 4 }} />
+            <div style={{flex:2}}>
+              <div style={{color:"rgba(255,255,255,.6)",fontSize:".8rem",marginBottom:".8rem"}}>Next: 🥈 Silver Planter</div>
+              <div style={{background:"rgba(255,255,255,.1)",height:8,borderRadius:4,overflow:"hidden"}}>
+                <div style={{width:"60%",height:"100%",background:"linear-gradient(90deg,var(--amber),#f5d060)",borderRadius:4}}/>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "rgba(255,255,255,0.5)", marginTop: "0.4rem" }}>
-                <span>150 / 250 points</span><span>🥈 Silver Planter</span>
-              </div>
+              <div style={{fontSize:".75rem",color:"rgba(255,255,255,.5)",marginTop:".4rem"}}>150 / 250 pts</div>
             </div>
           </div>
-
-          <div className="rewards-grid">
+          <div className="rwds-grid">
             {[
-              { tier: "bronze", emoji: "🥉", title: "Pehla Kadam", desc: "Pehli sapling lagao aur reward pao!", points: "50 Points", condition: "1 Sapling" },
-              { tier: "silver", emoji: "🥈", title: "Silver Planter", desc: "Ek hafte mein 2 saplings lagao — #twosaplingsweek achieve karo!", points: "100 Points", condition: "2+ Saplings / Week" },
-              { tier: "gold", emoji: "🥇", title: "Gold Harit Yodha", desc: "Community ka sabse bada plantation contributor bano!", points: "500 Points", condition: "10+ Saplings" },
-              { tier: "bronze", emoji: "📜", title: "Green Certificate", desc: "Officially recognise ho jao Van Vibhag ki taraf se!", points: "Certificate", condition: "5 Saplings" },
-              { tier: "gold", emoji: "🎉", title: "Festival VIP Pass", desc: "TheGreenAwakeningFestival mein special entry aur recognition!", points: "Special Badge", condition: "20+ Saplings" },
-              { tier: "silver", emoji: "🌍", title: "Carbon Hero Badge", desc: "Online profile pe Carbon Hero badge milta hai!", points: "Digital Badge", condition: "3 Saplings" },
-            ].map((r, i) => (
-              <div key={i} className={`reward-card ${r.tier}`}>
-                <div className="reward-emoji">{r.emoji}</div>
-                <h3>{r.title}</h3>
-                <p>{r.desc}</p>
-                <div style={{ fontSize: "0.75rem", color: "var(--subtext)", marginTop: "0.5rem", background: "var(--mist)", padding: "0.3rem 0.6rem", borderRadius: 4, display: "inline-block" }}>
-                  Condition: {r.condition}
-                </div>
-                <div className="reward-points">{r.points}</div>
+              {t:"bronze",e:"🥉",h:"Pehla Kadam",       d:"Pehli sapling lagao!",                      p:"50 Points",   c:"1 Sapling"},
+              {t:"silver",e:"🥈",h:"Silver Planter",    d:"#twosaplingsweek achieve karo!",             p:"100 Points",  c:"2+/Week"},
+              {t:"gold",  e:"🥇",h:"Gold Harit Yodha",  d:"Community ka top plantation contributor!",   p:"500 Points",  c:"10+ Saplings"},
+              {t:"bronze",e:"📜",h:"Green Certificate", d:"Abhyuday Samarpan ki taraf se recognition!", p:"Certificate", c:"5 Saplings"},
+              {t:"gold",  e:"🎉",h:"Festival VIP Pass", d:"GreenAwakeningFestival special entry!",      p:"VIP Badge",   c:"20+ Saplings"},
+              {t:"silver",e:"🌍",h:"Carbon Hero Badge", d:"Online profile pe special badge!",           p:"Digital Badge",c:"3 Saplings"},
+            ].map((r,i)=>(
+              <div key={i} className={"rcard "+r.t}>
+                <div className="rem">{r.e}</div>
+                <h3>{r.h}</h3><p>{r.d}</p>
+                <div style={{fontSize:".75rem",color:"var(--sub)",marginTop:".5rem",background:"var(--mist)",padding:".3rem .6rem",borderRadius:4,display:"inline-block"}}>Condition: {r.c}</div>
+                <div className="rpts">{r.p}</div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* DASHBOARD TAB */}
-      {tab === "dashboard" && (
+      {tab==="dash"&&(
         <div className="section">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"2rem",flexWrap:"wrap",gap:"1rem"}}>
             <div>
-              <div className="section-title">🏛️ Parshad Dashboard</div>
-              <div style={{ color: "var(--subtext)", fontSize: "0.85rem" }}>Ward 3, Amlaha Block — Admin View</div>
+              <div className="sec-title">🌿 Abhyuday Dashboard</div>
+              <div style={{color:"var(--sub)",fontSize:".85rem"}}>Abhyuday Samarpan — Plantation Sector Admin View</div>
             </div>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              {["requests", "stats"].map(t => (
-                <button key={t} className={`nav-tab ${dashTab === t ? "active" : ""}`} style={{ border: "1px solid rgba(45,106,79,0.2)", borderRadius: 8 }} onClick={() => setDashTab(t)}>
-                  {t === "requests" ? "📋 Requests" : "📊 Statistics"}
-                </button>
+            <div style={{display:"flex",gap:".5rem"}}>
+              {[["req","📋 Requests"],["stats","📊 Statistics"]].map(([id,lbl])=>(
+                <button key={id} className={"nav-tab"+(dtab===id?" active":"")} style={{border:"1px solid rgba(45,106,79,.2)",borderRadius:8}} onClick={()=>setDtab(id)}>{lbl}</button>
               ))}
             </div>
           </div>
-
-          {dashTab === "requests" && (
+          {dtab==="req"&&(
             <>
               <div className="dash-grid">
-                {[
-                  { icon: "📋", num: "47", label: "Total Applications", accent: false },
-                  { icon: "⏳", num: "8", label: "Pending Verification", accent: false },
-                  { icon: "🌱", num: "31", label: "Saplings Distributed", accent: true },
-                  { icon: "🌳", num: "24", label: "Plantations Confirmed", accent: false },
-                ].map((c, i) => (
-                  <div key={i} className={`dash-card ${c.accent ? "accent" : ""}`}>
-                    <div className="dash-card-icon">{c.icon}</div>
-                    <div className="dash-card-num">{c.num}</div>
-                    <div className="dash-card-label">{c.label}</div>
+                {[{e:"📋",n:"47",l:"Total Applications"},{e:"⏳",n:"8",l:"Pending Verification"},{e:"🌱",n:"31",l:"Saplings Distributed",dk:true},{e:"🌳",n:"24",l:"Plantations Confirmed"}].map((c,i)=>(
+                  <div key={i} className={"dcard"+(c.dk?" dk":"")}>
+                    <div className="di">{c.e}</div><div className="dn">{c.n}</div><div className="dl">{c.l}</div>
                   </div>
                 ))}
               </div>
-
-              <div className="table-wrap">
-                <div className="table-head">
-                  <h3>Recent Applications</h3>
-                  <span style={{ fontSize: "0.8rem", color: "var(--subtext)" }}>3 pending verification</span>
-                </div>
+              <div className="twrap">
+                <div className="thead"><h3>Recent Applications</h3><span style={{fontSize:".8rem",color:"var(--sub)"}}>3 pending</span></div>
                 <table>
-                  <thead>
-                    <tr>
-                      <th>UID</th><th>Naam</th><th>Gaon</th><th>Saplings</th><th>Location</th><th>Status</th><th>Action</th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th>UID</th><th>Naam</th><th>Mohalla</th><th>Saplings</th><th>Status</th><th>Action</th></tr></thead>
                   <tbody>
-                    {MOCK_REQUESTS.map((r) => (
+                    {MOCK.map(r=>(
                       <tr key={r.uid}>
-                        <td style={{ fontWeight: 600, color: "var(--leaf)" }}>{r.uid}</td>
-                        <td>{r.name}</td>
-                        <td>{r.village}</td>
-                        <td style={{ textAlign: "center" }}>{r.saplings}</td>
-                        <td style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.location}</td>
-                        <td><span className={`status-badge ${STATUS_COLORS[r.status]}`} style={{ fontSize: "0.72rem" }}>{STATUS_LABELS[r.status]}</span></td>
+                        <td style={{fontWeight:600,color:"var(--leaf)"}}>{r.uid}</td>
+                        <td>{r.name}</td><td>{r.village}</td>
+                        <td style={{textAlign:"center"}}>{r.saplings}</td>
+                        <td><span className={"sbadge "+SCOL[r.status]} style={{fontSize:".72rem"}}>{SLBL[r.status]}</span></td>
                         <td>
-                          {r.status === "pending" && (
-                            <>
-                              <button className="action-btn">✅ Approve</button>
-                              <button className="action-btn danger">❌ Reject</button>
-                            </>
-                          )}
-                          {r.status === "approved" && <button className="action-btn">🎫 Issue UID</button>}
-                          {r.status === "collected" && <button className="action-btn">📷 View Proof</button>}
-                          {r.status === "complete" && <span style={{ color: "var(--leaf)", fontSize: "0.8rem" }}>✓ Done</span>}
+                          {r.status==="pending"&&<><button className="abtn">✅ Approve</button><button className="abtn red">❌</button></>}
+                          {r.status==="approved"&&<button className="abtn">🎫 UID</button>}
+                          {r.status==="collected"&&<button className="abtn">📷 Proof</button>}
+                          {r.status==="complete"&&<span style={{color:"var(--leaf)",fontSize:".8rem"}}>✓ Done</span>}
                         </td>
                       </tr>
                     ))}
@@ -938,30 +647,20 @@ function HaritSetu() {
               </div>
             </>
           )}
-
-          {dashTab === "stats" && (
+          {dtab==="stats"&&(
             <>
               <div className="dash-grid">
-                {[
-                  { icon: "📅", num: "48", label: "Weeks Active (#twosaplingsweek)" },
-                  { icon: "🌱", num: "96+", label: "Saplings via #twosaplingsweek" },
-                  { icon: "🎪", num: "2", label: "GreenAwakeningFestival Events" },
-                  { icon: "🏆", num: "₹0", label: "Cost to Citizens (Always Free)" },
-                ].map((c, i) => <div key={i} className="dash-card"><div className="dash-card-icon">{c.icon}</div><div className="dash-card-num">{c.num}</div><div className="dash-card-label">{c.label}</div></div>)}
+                {[{e:"📅",n:"48",l:"Weeks Active"},{e:"🌱",n:"96+",l:"#twosaplingsweek Saplings"},{e:"🎪",n:"2",l:"Festival Events"},{e:"🏆",n:"₹0",l:"Cost to Citizens"}].map((c,i)=>(
+                  <div key={i} className="dcard"><div className="di">{c.e}</div><div className="dn">{c.n}</div><div className="dl">{c.l}</div></div>
+                ))}
               </div>
-              <div className="table-wrap">
-                <div className="table-head"><h3>Sapling Stock — Abhyuday Nursery</h3></div>
+              <div className="twrap">
+                <div className="thead"><h3>Sapling Stock — Abhyuday Nursery</h3></div>
                 <table>
                   <thead><tr><th>Variety</th><th>Available</th><th>Distributed</th><th>Source</th></tr></thead>
                   <tbody>
-                    {[
-                      ["Neem (Azadirachta indica)", "45", "32", "Van Vibhag"],
-                      ["Peepal (Ficus religiosa)", "28", "18", "Van Vibhag"],
-                      ["Gulmohar", "30", "15", "Abhyuday Nursery"],
-                      ["Amla (Phyllanthus emblica)", "20", "12", "Van Vibhag"],
-                      ["Bamboo", "50", "40", "Van Vibhag"],
-                    ].map(([n, a, d, s]) => (
-                      <tr key={n}><td style={{ fontWeight: 600 }}>{n}</td><td style={{ color: "var(--leaf)", fontWeight: 700 }}>{a}</td><td>{d}</td><td style={{ color: "var(--subtext)", fontSize: "0.8rem" }}>{s}</td></tr>
+                    {[["Neem","45","32"],["Peepal","28","18"],["Gulmohar","30","15"],["Amla","20","12"],["Bamboo","50","40"]].map(([n,a,d])=>(
+                      <tr key={n}><td style={{fontWeight:600}}>{n}</td><td style={{color:"var(--leaf)",fontWeight:700}}>{a}</td><td>{d}</td><td style={{color:"var(--sub)",fontSize:".8rem"}}>Abhyuday Nursery</td></tr>
                     ))}
                   </tbody>
                 </table>
@@ -971,25 +670,245 @@ function HaritSetu() {
         </div>
       )}
 
-      {/* FOOTER */}
-      <div style={{ background: "var(--forest)", padding: "2.5rem 2rem", marginTop: "3rem" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "1.5rem" }}>
-          <div>
-            <div style={{ fontFamily: "'Playfair Display', serif", color: "var(--sage)", fontSize: "1.2rem", marginBottom: "0.4rem" }}>🌱 HaritSetu</div>
-            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.78rem", lineHeight: 1.7 }}>
-              Abhyuday Social Welfare Group<br/>Plantation Sector · #twosaplingsweek
+      {tab==="about"&&(
+        <>
+          {/* HERO */}
+          <div style={{background:"linear-gradient(135deg,var(--forest) 0%,#0d2418 60%,#162d20 100%)",padding:"5rem 2rem 4rem",textAlign:"center",position:"relative",overflow:"hidden"}}>
+            <div className="orb" style={{width:300,height:300,background:"rgba(82,183,136,.12)",top:"-60px",left:"-40px",animationDuration:"8s"}}/>
+            <div className="orb" style={{width:200,height:200,background:"rgba(212,160,23,.1)",bottom:"20px",right:"10%",animationDuration:"10s",animationDelay:"2s"}}/>
+            <div style={{display:"inline-block",background:"rgba(82,183,136,.2)",border:"1px solid var(--lime)",color:"var(--lime)",padding:".3rem 1rem",borderRadius:20,fontSize:".75rem",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"1.5rem",position:"relative",zIndex:1}}>Est. 14 November 2024</div>
+            <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(2rem,5vw,3.2rem)",color:"white",lineHeight:1.2,marginBottom:"1rem",position:"relative",zIndex:1}}>
+              Small Actions,{" "}<span style={{background:"linear-gradient(90deg,var(--sage),var(--lime),var(--sage))",backgroundSize:"200% auto",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>Big Change</span>
+            </h1>
+            <p style={{color:"rgba(255,255,255,.65)",fontSize:"1rem",maxWidth:620,margin:"0 auto 2.5rem",lineHeight:1.85,position:"relative",zIndex:1}}>
+              Abhyuday Samarpan is a youth-driven social welfare initiative dedicated to creating positive change through consistent community action — across plantation, animal welfare, education, and cleanliness.
+            </p>
+            <div style={{display:"flex",gap:"1rem",justifyContent:"center",flexWrap:"wrap",position:"relative",zIndex:1}}>
+              {[["30+","Active Volunteers"],["4","Social Sectors"],["₹10/wk","Community Fund"],["Nov 2024","Founded"]].map(([n,l])=>(
+                <div key={l} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(149,213,178,.2)",borderRadius:10,padding:".8rem 1.4rem",textAlign:"center",minWidth:110}}>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:"1.3rem",color:"var(--sage)",fontWeight:700}}>{n}</div>
+                  <div style={{fontSize:".7rem",color:"rgba(255,255,255,.55)",marginTop:".2rem",letterSpacing:".3px"}}>{l}</div>
+                </div>
+              ))}
             </div>
           </div>
+
+          {/* QUICK STATS STRIP */}
+          <div style={{background:"var(--leaf)",display:"grid",gridTemplateColumns:"repeat(4,1fr)"}}>
+            {[["20+","Saplings Planted"],["30+","Saplings Distributed"],["2","Dog Rescues"],["1","Cat Rescue + Treatment"]].map(([n,l],i)=>(
+              <div key={i} style={{padding:"1.4rem",textAlign:"center",borderRight:"1px solid rgba(255,255,255,.1)"}}>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:"1.8rem",color:"var(--sage)",fontWeight:700}}>{n}</div>
+                <div style={{fontSize:".73rem",color:"rgba(255,255,255,.65)",marginTop:".2rem"}}>{l}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="section">
+
+            {/* ABOUT + VISION */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"3rem",marginBottom:"4rem",alignItems:"start"}}>
+              <div>
+                <div style={{color:"var(--lime)",fontSize:".72rem",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",marginBottom:".7rem"}}>Who We Are</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:"1.7rem",color:"var(--forest)",lineHeight:1.3,marginBottom:"1rem"}}>About Abhyuday Samarpan</div>
+                <p style={{color:"var(--sub)",lineHeight:1.9,fontSize:".92rem",marginBottom:"1rem"}}>
+                  Abhyuday Samarpan is a youth-driven social welfare initiative dedicated to creating positive change through consistent community action. Established on <strong style={{color:"var(--forest)"}}>14 November 2024</strong>, it began with a small team of passionate individuals who believed that meaningful change starts with small but consistent efforts.
+                </p>
+                <p style={{color:"var(--sub)",lineHeight:1.9,fontSize:".92rem"}}>
+                  What started as a humble initiative has grown into a dedicated volunteer network with <strong style={{color:"var(--forest)"}}>30+ active volunteers</strong> working across different social sectors — not just raising awareness, but taking real, practical action.
+                </p>
+              </div>
+              <div style={{background:"linear-gradient(135deg,var(--forest),#162d20)",borderRadius:16,padding:"2.2rem",color:"white"}}>
+                <div style={{color:"var(--amber)",fontSize:".72rem",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",marginBottom:".8rem"}}>Our Vision</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:"1.2rem",marginBottom:"1rem",lineHeight:1.4}}>A socially responsible community where individuals actively contribute to change.</div>
+                <p style={{color:"rgba(255,255,255,.65)",fontSize:".88rem",lineHeight:1.8,marginBottom:"1.5rem"}}>
+                  Abhyuday believes that when people come together with a shared purpose — even small efforts can bring about significant and long-term transformation in society and the environment.
+                </p>
+                <div style={{borderTop:"1px solid rgba(149,213,178,.2)",paddingTop:"1.2rem"}}>
+                  <div style={{color:"rgba(255,255,255,.5)",fontSize:".72rem",textTransform:"uppercase",letterSpacing:"1px",marginBottom:".6rem"}}>Focus Areas</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:".5rem"}}>
+                    {["🌿 Environment","🐾 Animal Welfare","📚 Education","🧹 Cleanliness"].map(t=>(
+                      <span key={t} style={{background:"rgba(82,183,136,.15)",border:"1px solid rgba(82,183,136,.25)",color:"var(--sage)",fontSize:".75rem",padding:".25rem .7rem",borderRadius:20}}>{t}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SECTORS HEADER */}
+            <div style={{textAlign:"center",marginBottom:"2.5rem"}}>
+              <div style={{color:"var(--lime)",fontSize:".72rem",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",marginBottom:".6rem"}}>Our Work</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:"2rem",color:"var(--forest)"}}>4 Sectors of Action</div>
+              <div style={{color:"var(--sub)",fontSize:".9rem",marginTop:".5rem"}}>Each sector focuses on a specific, real social need in our community.</div>
+            </div>
+
+            {/* SECTOR 1 — PLANTATION */}
+            <div style={{background:"white",borderRadius:16,border:"1px solid rgba(45,106,79,.12)",overflow:"hidden",marginBottom:"2rem",boxShadow:"0 4px 20px rgba(0,0,0,.05)"}}>
+              <div style={{background:"linear-gradient(135deg,var(--forest),#2d6a4f)",padding:"2rem",display:"flex",alignItems:"center",gap:"1rem"}}>
+                <div style={{fontSize:"2.5rem"}}>🌿</div>
+                <div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:"1.4rem",color:"white"}}>Plantation Sector</div>
+                  <div style={{color:"rgba(255,255,255,.6)",fontSize:".82rem",marginTop:".2rem"}}>Increasing green cover · Community plantation · Sustainability</div>
+                </div>
+              </div>
+              <div style={{padding:"2rem"}}>
+                <p style={{color:"var(--sub)",lineHeight:1.85,fontSize:".92rem",marginBottom:"1.8rem"}}>
+                  Environmental protection is a core priority of Abhyuday Samarpan. The Plantation Sector works towards increasing green cover and encouraging people to participate in tree plantation activities.
+                </p>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:"1.2rem"}}>
+                  {[
+                    {e:"🌱",t:"#Twosaplingsweek",d:"At least two saplings planted every week — making plantation a regular, continuous habit rather than a one-time event. 20+ saplings planted, 30+ distributed so far."},
+                    {e:"🏡",t:"Abhyuday Nursery",d:"Saplings are collected and nurtured at our nursery so they're always ready for plantation drives and distribution, even off-season."},
+                    {e:"🎪",t:"TheGreenAwakeningFestival",d:"Annual event with large-scale plantation drives and sapling distribution — expanding our reach and engaging the wider community."},
+                  ].map((p,i)=>(
+                    <div key={i} style={{background:"var(--mist)",borderRadius:12,padding:"1.5rem",border:"1px solid rgba(82,183,136,.15)"}}>
+                      <div style={{fontSize:"1.8rem",marginBottom:".6rem"}}>{p.e}</div>
+                      <div style={{fontWeight:700,color:"var(--forest)",fontSize:".92rem",marginBottom:".5rem"}}>{p.t}</div>
+                      <p style={{fontSize:".82rem",color:"var(--sub)",lineHeight:1.65}}>{p.d}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* SECTOR 2 — ANIMAL WELFARE */}
+            <div style={{background:"white",borderRadius:16,border:"1px solid rgba(45,106,79,.12)",overflow:"hidden",marginBottom:"2rem",boxShadow:"0 4px 20px rgba(0,0,0,.05)"}}>
+              <div style={{background:"linear-gradient(135deg,#2c3e50,#3d5166)",padding:"2rem",display:"flex",alignItems:"center",gap:"1rem"}}>
+                <div style={{fontSize:"2.5rem"}}>🐾</div>
+                <div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:"1.4rem",color:"white"}}>Animal Welfare Sector</div>
+                  <div style={{color:"rgba(255,255,255,.6)",fontSize:".82rem",marginTop:".2rem"}}>Stray animal shelter · Rescue · Medical treatment</div>
+                </div>
+              </div>
+              <div style={{padding:"2rem"}}>
+                <p style={{color:"var(--sub)",lineHeight:1.85,fontSize:".92rem",marginBottom:"1.8rem"}}>
+                  Focused on protecting and supporting stray animals who suffer due to lack of shelter and medical care. Abhyuday promotes compassion and responsibility towards animals in the community.
+                </p>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:"1rem"}}>
+                  {[
+                    {e:"🏠",t:"Free Dog Houses",d:"Installation of shelters protecting stray dogs from cold and rain."},
+                    {e:"🐕",t:"2 Dog Rescues",d:"Successfully rescued and treated two stray dogs in need of urgent care."},
+                    {e:"🐈",t:"1 Cat Rescue",d:"One cat rescued along with complete medical treatment provided."},
+                    {e:"💉",t:"Puppy Treatment",d:"Treatment of infected puppies — ensuring their recovery and welfare."},
+                  ].map((p,i)=>(
+                    <div key={i} style={{background:"#f0f4f8",borderRadius:12,padding:"1.3rem",border:"1px solid rgba(44,62,80,.1)"}}>
+                      <div style={{fontSize:"1.6rem",marginBottom:".5rem"}}>{p.e}</div>
+                      <div style={{fontWeight:700,color:"#2c3e50",fontSize:".88rem",marginBottom:".4rem"}}>{p.t}</div>
+                      <p style={{fontSize:".8rem",color:"#5a6a7a",lineHeight:1.6}}>{p.d}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* SECTOR 3 — EDUCATION */}
+            <div style={{background:"white",borderRadius:16,border:"1px solid rgba(45,106,79,.12)",overflow:"hidden",marginBottom:"2rem",boxShadow:"0 4px 20px rgba(0,0,0,.05)"}}>
+              <div style={{background:"linear-gradient(135deg,#7b341e,#9c4221)",padding:"2rem",display:"flex",alignItems:"center",gap:"1rem"}}>
+                <div style={{fontSize:"2.5rem"}}>📚</div>
+                <div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:"1.4rem",color:"white"}}>Education Sector</div>
+                  <div style={{color:"rgba(255,255,255,.6)",fontSize:".82rem",marginTop:".2rem"}}>Free teaching support · Creative activities · Social inclusion</div>
+                </div>
+              </div>
+              <div style={{padding:"2rem"}}>
+                <p style={{color:"var(--sub)",lineHeight:1.85,fontSize:".92rem",marginBottom:"1.8rem"}}>
+                  Focused on supporting students and encouraging creativity among young learners — especially children from government and underprivileged schools.
+                </p>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:"1rem"}}>
+                  {[
+                    {e:"✏️",t:"Free Teaching Support",d:"Volunteers help students with their studies and provide academic assistance at no cost."},
+                    {e:"🎨",t:"Drawing Competitions",d:"Creative and cultural activities organized to encourage expression and engagement among children."},
+                    {e:"🎉",t:"Festival Celebrations",d:"Holi and Diwali celebrated with students from government and underprivileged schools — promoting social inclusion."},
+                  ].map((p,i)=>(
+                    <div key={i} style={{background:"#fdf6f0",borderRadius:12,padding:"1.3rem",border:"1px solid rgba(123,52,30,.1)"}}>
+                      <div style={{fontSize:"1.6rem",marginBottom:".5rem"}}>{p.e}</div>
+                      <div style={{fontWeight:700,color:"#7b341e",fontSize:".88rem",marginBottom:".4rem"}}>{p.t}</div>
+                      <p style={{fontSize:".8rem",color:"#8b6355",lineHeight:1.6}}>{p.d}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* SECTOR 4 — SWACHH BHARAT */}
+            <div style={{background:"white",borderRadius:16,border:"1px solid rgba(45,106,79,.12)",overflow:"hidden",marginBottom:"3rem",boxShadow:"0 4px 20px rgba(0,0,0,.05)"}}>
+              <div style={{background:"linear-gradient(135deg,#1a5276,#2471a3)",padding:"2rem",display:"flex",alignItems:"center",gap:"1rem"}}>
+                <div style={{fontSize:"2.5rem"}}>🧹</div>
+                <div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:"1.4rem",color:"white"}}>Swachh Bharat Abhiyan Sector</div>
+                  <div style={{color:"rgba(255,255,255,.6)",fontSize:".82rem",marginTop:".2rem"}}>Cleanliness drives · Waste management · Sustainability</div>
+                </div>
+              </div>
+              <div style={{padding:"2rem"}}>
+                <p style={{color:"var(--sub)",lineHeight:1.85,fontSize:".92rem",marginBottom:"1.8rem"}}>
+                  Promoting cleanliness and responsible waste management in the community — through on-ground drives, awareness campaigns, and innovative recycling initiatives.
+                </p>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:"1rem"}}>
+                  {[
+                    {e:"🗑️",t:"Cleanliness Drives",d:"Public places cleaned and plastic waste removed — spreading awareness about maintaining a clean environment."},
+                    {e:"📢",t:"Awareness Campaigns",d:"Encouraging people to adopt responsible habits regarding waste disposal and environmental protection."},
+                    {e:"♻️",t:"Best Out of Waste",d:"Waste materials creatively converted into useful products — used for drip irrigation, plant covers, and rainwater harvesting."},
+                  ].map((p,i)=>(
+                    <div key={i} style={{background:"#eaf4fb",borderRadius:12,padding:"1.3rem",border:"1px solid rgba(26,82,118,.1)"}}>
+                      <div style={{fontSize:"1.6rem",marginBottom:".5rem"}}>{p.e}</div>
+                      <div style={{fontWeight:700,color:"#1a5276",fontSize:".88rem",marginBottom:".4rem"}}>{p.t}</div>
+                      <p style={{fontSize:".8rem",color:"#4a7a99",lineHeight:1.6}}>{p.d}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* COMMUNITY FUND */}
+            <div style={{background:"linear-gradient(135deg,var(--forest),#162d20)",borderRadius:16,padding:"2.5rem",marginBottom:"3rem",display:"flex",gap:"2.5rem",alignItems:"center",flexWrap:"wrap"}}>
+              <div style={{fontSize:"3rem"}}>💰</div>
+              <div style={{flex:1}}>
+                <div style={{color:"var(--amber)",fontSize:".72rem",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",marginBottom:".5rem"}}>Community Model</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:"1.3rem",color:"white",marginBottom:".7rem"}}>The ₹10 Weekly Contribution Program</div>
+                <p style={{color:"rgba(255,255,255,.65)",fontSize:".88rem",lineHeight:1.8}}>
+                  Team members voluntarily contribute <strong style={{color:"var(--sage)"}}>₹10 every week</strong>. These small contributions collectively fund all social initiatives and activities. This reflects the spirit of shared responsibility — proving that meaningful impact doesn't require large resources, just consistent commitment.
+                </p>
+              </div>
+              <div style={{background:"rgba(255,255,255,.07)",borderRadius:12,padding:"1.5rem",textAlign:"center",minWidth:140,border:"1px solid rgba(149,213,178,.15)"}}>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:"2rem",color:"var(--amber)",fontWeight:700}}>₹10</div>
+                <div style={{color:"rgba(255,255,255,.5)",fontSize:".72rem",marginTop:".3rem"}}>per member<br/>per week</div>
+              </div>
+            </div>
+
+            {/* BELIEF / CLOSING CTA */}
+            <div style={{background:"var(--mist)",borderRadius:16,padding:"3rem",textAlign:"center",border:"1px solid rgba(82,183,136,.2)"}}>
+              <div style={{fontSize:"2.5rem",marginBottom:"1rem"}}>🌱</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:"1.6rem",color:"var(--forest)",marginBottom:"1rem",lineHeight:1.4}}>
+                "Real change begins with small actions."
+              </div>
+              <p style={{color:"var(--sub)",fontSize:".92rem",maxWidth:560,margin:"0 auto 2rem",lineHeight:1.8}}>
+                Every sapling planted, every animal rescued, every student supported, and every clean space created brings us one step closer to a better future. Join Abhyuday Samarpan — and be part of this change.
+              </p>
+              <div style={{display:"flex",gap:"1rem",justifyContent:"center",flexWrap:"wrap"}}>
+                <button className="btn-p" style={{animation:"none"}} onClick={()=>go("apply")}>🌱 Get a Free Sapling</button>
+                <button className="btn-o" onClick={()=>go("rewards")}>🏆 View Rewards</button>
+              </div>
+            </div>
+
+          </div>
+        </>
+      )}
+
+      <div style={{background:"var(--forest)",padding:"2.5rem 2rem",marginTop:"3rem"}}>
+        <div style={{maxWidth:1100,margin:"0 auto",display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:"1.5rem"}}>
           <div>
-            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", marginBottom: "0.6rem", textTransform: "uppercase", letterSpacing: "1px" }}>Programs</div>
-            {["#twosaplingsweek", "TheGreenAwakeningFestival", "Abhyuday Nursery", "Van Vibhag Partnership"].map(l => (
-              <div key={l} style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.82rem", marginBottom: "0.3rem" }}>{l}</div>
+            <div style={{fontFamily:"'Playfair Display',serif",color:"var(--sage)",fontSize:"1.2rem",marginBottom:".4rem"}}>🌱 HaritSetu</div>
+            <div style={{color:"rgba(255,255,255,.45)",fontSize:".78rem",lineHeight:1.7}}>Abhyuday Samarpan<br/>Plantation Sector · #twosaplingsweek</div>
+          </div>
+          <div>
+            <div style={{color:"rgba(255,255,255,.5)",fontSize:".75rem",marginBottom:".6rem",textTransform:"uppercase",letterSpacing:"1px"}}>Programs</div>
+            {["#twosaplingsweek","TheGreenAwakeningFestival","Abhyuday Nursery","Abhyuday Samarpan"].map(l=>(
+              <div key={l} style={{color:"rgba(255,255,255,.5)",fontSize:".82rem",marginBottom:".3rem"}}>{l}</div>
             ))}
           </div>
           <div>
-            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", marginBottom: "0.6rem", textTransform: "uppercase", letterSpacing: "1px" }}>Problem We Solve</div>
-            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.8rem", lineHeight: 1.7, maxWidth: 250 }}>
-              Land availability · Free sapling access · Community awareness — sabko ek platform par solve karta hai HaritSetu.
+            <div style={{color:"rgba(255,255,255,.5)",fontSize:".75rem",marginBottom:".6rem",textTransform:"uppercase",letterSpacing:"1px"}}>Problem We Solve</div>
+            <div style={{color:"rgba(255,255,255,.45)",fontSize:".8rem",lineHeight:1.7,maxWidth:250}}>
+              Land availability · Free sapling access · Community awareness — Abhyuday Samarpan ka HaritSetu.
             </div>
           </div>
         </div>
@@ -999,7 +918,7 @@ function HaritSetu() {
 }
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<HaritSetu />);
+    root.render(<App />);
   </script>
 </body>
 </html>
