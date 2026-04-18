@@ -247,6 +247,79 @@ const css = `
   }
 
   body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); }
+  /* ── Intro Splash ── */
+  @keyframes splashFadeOut { 0%{opacity:1;visibility:visible} 80%{opacity:1} 100%{opacity:0;visibility:hidden;pointer-events:none} }
+  @keyframes seedGrow  { 0%{transform:scale(0) rotate(-15deg);opacity:0} 60%{transform:scale(1.15) rotate(4deg);opacity:1} 100%{transform:scale(1) rotate(0deg);opacity:1} }
+  @keyframes ringPulse { 0%{transform:scale(.6);opacity:0} 50%{opacity:.35} 100%{transform:scale(2.4);opacity:0} }
+  @keyframes leafSpin1 { 0%{transform:translate(-80px,60px) rotate(-40deg) scale(0);opacity:0} 55%{opacity:1} 100%{transform:translate(-58px,38px) rotate(-25deg) scale(1);opacity:1} }
+  @keyframes leafSpin2 { 0%{transform:translate(80px,60px) rotate(40deg) scale(0);opacity:0} 55%{opacity:1} 100%{transform:translate(58px,38px) rotate(25deg) scale(1);opacity:1} }
+  @keyframes titleSlide { 0%{opacity:0;transform:translateY(28px) scale(.96)} 100%{opacity:1;transform:translateY(0) scale(1)} }
+  @keyframes taglineIn  { 0%{opacity:0;letter-spacing:6px} 100%{opacity:1;letter-spacing:2px} }
+  @keyframes barFill    { 0%{width:0} 100%{width:100%} }
+  @keyframes dotBlink   { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
+
+  .splash {
+    position:fixed; inset:0; z-index:9999;
+    background:radial-gradient(ellipse at 50% 40%, #0d2a1a 0%, #061410 100%);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    animation:splashFadeOut .7s ease 3.2s forwards;
+  }
+  .splash-rings { position:absolute; top:50%; left:50%; }
+  .splash-ring  {
+    position:absolute; border-radius:50%; border:1.5px solid rgba(82,183,136,.35);
+    animation:ringPulse 2.4s ease-out infinite;
+  }
+  .logo-circle { border-radius:50%; overflow:hidden; display:inline-flex; flex-shrink:0; }
+  .splash-logo-wrap { position:relative; z-index:2; margin-bottom:2rem; }
+  .splash-logo {
+    width:110px; height:110px; border-radius:50%; object-fit:cover; overflow:hidden;
+    animation:seedGrow .9s cubic-bezier(.34,1.56,.64,1) .3s both;
+    filter:drop-shadow(0 0 28px rgba(82,183,136,.6));
+  }
+  .splash-leaf {
+    position:absolute; font-size:1.8rem; top:50%;
+    animation-duration:.9s;
+    animation-timing-function:cubic-bezier(.34,1.56,.64,1);
+    animation-fill-mode:both; animation-delay:.7s;
+  }
+  .splash-leaf.l { animation-name:leafSpin1; }
+  .splash-leaf.r { animation-name:leafSpin2; }
+  .splash-title {
+    font-family:'Playfair Display',serif;
+    font-size:clamp(1.8rem,6vw,3rem); color:#fff;
+    animation:titleSlide .8s cubic-bezier(.22,1,.36,1) .9s both;
+    text-align:center; line-height:1.2;
+    text-shadow:0 0 40px rgba(82,183,136,.4);
+  }
+  .splash-title span { color:#52b788; }
+  .splash-tagline {
+    font-size:.8rem; letter-spacing:2px; text-transform:uppercase;
+    color:rgba(149,213,178,.75); margin-top:.7rem;
+    animation:taglineIn .9s ease 1.3s both; text-align:center;
+  }
+  .splash-bar-wrap {
+    width:200px; height:3px; background:rgba(255,255,255,.1);
+    border-radius:3px; margin-top:2.5rem; overflow:hidden;
+    animation:titleSlide .5s ease 1.5s both;
+  }
+  .splash-bar {
+    height:100%; border-radius:3px;
+    background:linear-gradient(90deg,#FF9933,#52b788,#138808);
+    animation:barFill 1.55s cubic-bezier(.4,0,.2,1) 1.65s both;
+  }
+  .splash-dots { display:flex; gap:6px; margin-top:1rem; animation:titleSlide .5s ease 1.5s both; }
+  .splash-dots span {
+    width:6px; height:6px; border-radius:50%; background:rgba(82,183,136,.7);
+    animation:dotBlink 1.2s ease-in-out infinite;
+  }
+  .splash-dots span:nth-child(2){ animation-delay:.2s; }
+  .splash-dots span:nth-child(3){ animation-delay:.4s; }
+  .splash-flag { display:flex; gap:0; margin-top:1.5rem; border-radius:3px; overflow:hidden; animation:titleSlide .5s ease 1.5s both; }
+  .splash-flag span { display:block; width:28px; height:6px; }
+  .splash-flag span:nth-child(1){ background:#FF9933; }
+  .splash-flag span:nth-child(2){ background:#fff; }
+  .splash-flag span:nth-child(3){ background:#138808; }
+
   /* ── Language Toggle ── */
   .lang-toggle { position:relative; display:flex; align-items:center; background:linear-gradient(135deg,rgba(255,153,0,.18),rgba(19,136,8,.18)); border:1.5px solid rgba(255,153,0,.55); border-radius:30px; padding:4px 6px; cursor:pointer; gap:4px; flex-shrink:0; transition:box-shadow .3s,border-color .3s; overflow:hidden; }
   .lang-toggle:hover { border-color:rgba(255,153,0,.9); box-shadow:0 0 14px rgba(255,153,0,.35); }
@@ -472,10 +545,12 @@ function App(){
   const [found,setFound]   = useState(null);
   const [proof,setProof]   = useState(false);
   const [lang,setLang]     = useState('en');
+  const [splash,setSplash] = useState(true);
   const tt = k => T[lang][k] !== undefined ? T[lang][k] : (T['en'][k] || k);
   const SLBL={pending:tt('tr_sp'),approved:tt('tr_sa'),collected:tt('tr_sc'),complete:tt('tr_sd')};
   const [dtab,setDtab]     = useState("req");
   const cref               = useRef(false);
+  useEffect(()=>{ const t=setTimeout(()=>setSplash(false),3900); return()=>clearTimeout(t); },[]);
 
   useEffect(()=>{
     if(tab!=="home"||cref.current) return;
@@ -522,6 +597,26 @@ function App(){
 
   return(
     <div className="app" style={{fontFamily:lang==="hi"?"'Hind',sans-serif":"'DM Sans',sans-serif"}}>
+
+      {splash&&(
+        <div className="splash">
+          <div className="splash-rings">
+            {[90,150,210,280].map((s,i)=>(
+              <div key={i} className="splash-ring" style={{width:s,height:s,marginLeft:-s/2,marginTop:-s/2,animationDelay:(i*.55)+"s"}}/>
+            ))}
+          </div>
+          <div className="splash-logo-wrap">
+            <img src={LOGO_SRC} className="splash-logo" alt="logo"/>
+            <span className="splash-leaf l">🌿</span>
+            <span className="splash-leaf r">🌿</span>
+          </div>
+          <div className="splash-title"><span>Harit</span>Setu</div>
+          <div className="splash-tagline">Abhyuday Samarpan &middot; Plantation Sector</div>
+          <div className="splash-flag"><span/><span/><span/></div>
+          <div className="splash-bar-wrap"><div className="splash-bar"/></div>
+          <div className="splash-dots"><span/><span/><span/></div>
+        </div>
+      )}
       <style>{css}</style>
 
       <div className="ticker-wrap">
@@ -544,7 +639,7 @@ function App(){
       </div>
 
       <nav className="nav">
-        <div className="nav-brand" onClick={()=>go("home")}><img src={LOGO_SRC} style={{height:"36px",width:"36px",objectFit:"contain",borderRadius:"50%",flexShrink:0}} /> <span>Harit</span>Setu</div>
+        <div className="nav-brand" onClick={()=>go("home")}><span className="logo-circle" style={{width:"36px",height:"36px"}}><img src={LOGO_SRC} style={{width:"100%",height:"100%",objectFit:"cover"}} /></span> <span>Harit</span>Setu</div>
         <div className="nav-tabs">
           {nav.map(t=>(
             <button key={t.id} className={"nav-tab"+(tab===t.id?" active":"")} onClick={()=>go(t.id)}>
@@ -1136,7 +1231,7 @@ function App(){
       <div style={{background:"var(--forest)",padding:"2.5rem 2rem",marginTop:"3rem"}}>
         <div style={{maxWidth:1100,margin:"0 auto",display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:"1.5rem"}}>
           <div>
-            <div style={{fontFamily:"'Playfair Display',serif",color:"var(--sage)",fontSize:"1.2rem",marginBottom:".4rem"}}><img src={LOGO_SRC} style={{height:"28px",width:"28px",objectFit:"contain",borderRadius:"50%",verticalAlign:"middle",marginRight:"4px"}} />HaritSetu</div>
+            <div style={{fontFamily:"'Playfair Display',serif",color:"var(--sage)",fontSize:"1.2rem",marginBottom:".4rem"}}><span className="logo-circle" style={{width:"28px",height:"28px",verticalAlign:"middle",marginRight:"4px"}}><img src={LOGO_SRC} style={{width:"100%",height:"100%",objectFit:"cover"}} /></span>HaritSetu</div>
             <div style={{color:"rgba(255,255,255,.45)",fontSize:".78rem",lineHeight:1.7}}>Abhyuday Samarpan<br/>Plantation Sector · #twosaplingsweek</div>
           </div>
           <div>
